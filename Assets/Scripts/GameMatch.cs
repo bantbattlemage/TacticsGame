@@ -11,5 +11,13 @@ public class GameMatch : MonoBehaviour
     {
         Map = map;
         Players = players;
+
+        map.transform.parent = transform;
+        map.LoadMap();
+
+        foreach(GamePlayer p in players)
+        {
+            p.Initialize(map);
+        }
     }
 }

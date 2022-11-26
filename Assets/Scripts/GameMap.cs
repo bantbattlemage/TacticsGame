@@ -10,19 +10,6 @@ public class GameMap : MonoBehaviour
 
     public static int TileSize = 10;
 
-    public static GameMap Instance
-    {
-        get
-        {
-            return FindObjectOfType<GameMap>();
-        }
-    }
-
-    private void Start()
-    {
-        LoadMap();
-    }
-
     public void LoadMap()
     {
         int xLength = mapData.MapTiles.GetLength(0);
@@ -42,8 +29,6 @@ public class GameMap : MonoBehaviour
                 newlyInstantiatedTile.name = string.Format("{0},{1}", x, y);
             }
         }
-
-        GameCamera.Instance.Initialize();
     }
 
     public Vector2 MapSize

@@ -12,29 +12,23 @@ public class GameCamera : MonoBehaviour
     private int maxZoomDistance = 100;
     private float scrollSensitivity = 5;
 
-    public static GameCamera Instance
+    public void Initialize(GameMap map)
     {
-        get
-        {
-            return FindObjectOfType<GameCamera>();
-        }
-    }
-
-    public void Initialize()
-    {
-        mapSize = GameMap.Instance.MapSize;
+        mapSize = map.MapSize;
         mapSize.Scale(new Vector2(GameMap.TileSize, GameMap.TileSize));
         isInitialized = true;
     }
 
     void Update()
     {
-        if(!isInitialized)
+        if(!isInitialized || !isActiveAndEnabled)
         {
             return;
         }
 
-        if(Input.GetMouseButton(2) && lastMousePosition != null)
+        //  scroll
+
+        if (Input.GetMouseButton(2) && lastMousePosition != null)
         {
             Vector2 delta = new Vector2(lastMousePosition.x - Input.mousePosition.x, lastMousePosition.y - Input.mousePosition.y);
             delta.Scale(new Vector2(0.1f, 0.1f));
@@ -57,6 +51,8 @@ public class GameCamera : MonoBehaviour
         {
             transform.position = new Vector3(transform.position.x, transform.position.y, 0);
         }
+
+        //  zoom
 
         if (Input.mouseScrollDelta.y != 0)
         {
