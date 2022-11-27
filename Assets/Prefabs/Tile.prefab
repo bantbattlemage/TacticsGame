@@ -177,6 +177,7 @@ GameObject:
   - component: {fileID: 2091521993626103089}
   - component: {fileID: 4809362546163041752}
   - component: {fileID: 6128434440226292251}
+  - component: {fileID: -6296722747088130231}
   m_Layer: 0
   m_Name: Tile
   m_TagString: Untagged
@@ -217,6 +218,7 @@ MonoBehaviour:
   HilightPlane: {fileID: 53251177625186916}
   HilightGreenMaterial: {fileID: 2100000, guid: 49cf5497d9eae794e954e8c35e67cde5, type: 2}
   HilightRedMaterial: {fileID: 2100000, guid: 0d754a527de2cb74ebc4b422d975287b, type: 2}
+  TileData: {fileID: 0}
 --- !u!65 &6128434440226292251
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -230,3 +232,15 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 10, y: 1, z: 10}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-6296722747088130231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5261466178935394230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daab464c8f1aef24587bbe6f74bb922e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

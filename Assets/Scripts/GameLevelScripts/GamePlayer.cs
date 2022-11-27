@@ -6,6 +6,7 @@ using UnityEngine;
 public class GamePlayer : MonoBehaviour
 {
     public int PlayerID;
+    public string PlayerName;
     public GameCamera PlayerCamera;
     public PlayerUI PlayerInterface;
 
@@ -15,9 +16,10 @@ public class GamePlayer : MonoBehaviour
     public void Initialize(int playerID, string playerName, GameMap map)
     {
         PlayerID = playerID;
+        PlayerName = playerName;
         PlayerCamera.Initialize(map);
         PlayerCamera.GetComponent<Camera>().depth = playerID;
-        PlayerInterface.Initialize(playerName);
+        PlayerInterface.Initialize(this);
         PlayerInterface.EndTurnButtonPressed += EndTurn;
     }
 

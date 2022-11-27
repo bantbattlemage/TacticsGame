@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4524484266967396996}
   - component: {fileID: -4758906726050072248}
+  - component: {fileID: 7681975955263513982}
+  - component: {fileID: 3427534698434683757}
   m_Layer: 0
   m_Name: Building_HQ
   m_TagString: Untagged
@@ -46,6 +48,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Data: {fileID: 0}
+--- !u!114 &7681975955263513982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4379241539801061471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daab464c8f1aef24587bbe6f74bb922e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!65 &3427534698434683757
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4379241539801061471}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 5, y: 5, z: 5}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7367135027524122373
 GameObject:
   m_ObjectHideFlags: 0

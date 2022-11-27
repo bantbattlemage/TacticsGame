@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d33b332cfc0bfcf478cd2a1675ce249c, type: 3}
   m_Name: Commander_Player1
   m_EditorClassIdentifier: 
+  EntityType: 1
   Owner: 1
   Prefab: {fileID: 5370306762599958970, guid: d78cd5936ee233a47a10697aeeae38e9, type: 3}
   Type: 0
