@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+    [HideInInspector]
+    public GameMatch CurrentGameMatch;
+
     private static GameController _instance;
     public static GameController Instance
     {
@@ -35,6 +38,8 @@ public class GameController : MonoBehaviour
         }
 
         newMatch.Initialize(Instantiate(AssetDatabase.LoadAssetAtPath<GameMap>("Assets/Prefabs/GameMap.prefab")), players);
+
+        CurrentGameMatch = newMatch;
 
         return newMatch;
     }

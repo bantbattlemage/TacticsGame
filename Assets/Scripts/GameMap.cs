@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class GameMap : MonoBehaviour
@@ -12,22 +14,22 @@ public class GameMap : MonoBehaviour
 
     public void LoadMap()
     {
-        int xLength = mapData.MapTiles.GetLength(0);
-        int yLength = mapData.MapTiles.GetLength(1);
+        int xLength = mapData.MapTiles.Max(x => x.X) + 1;
+        int yLength = mapData.MapTiles.Max(x => x.Y) + 1;
         activeTiles = new GameTile[xLength, yLength];
 
         GameObject root = new GameObject();
         root.name = "root";
         root.transform.parent = transform;
+        GameObject basicTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tile.prefab");
 
-        for (int x = 0; x < xLength; x++)
+        foreach(TileData tileData in mapData.MapTiles)
         {
-            for (int y = 0; y < yLength; y++)
-            {
-                GameTile tile = mapData.MapTiles[x, y];
-                Object newlyInstantiatedTile = Instantiate(tile, new Vector3(x * TileSize, 0, y * TileSize), new Quaternion(), root.transform);
-                newlyInstantiatedTile.name = string.Format("{0},{1}", x, y);
-            }
+            GameObject newlyInstantiatedTile = Instantiate(basicTile, new Vector3(tileData.X * TileSize, 0, tileData.Y * TileSize), new Quaternion(), root.transform);
+            GameTile tile = newlyInstantiatedTile.GetComponent<GameTile>();
+            tile.TileData = tileData;
+            newlyInstantiatedTile.name = string.Format("{0},{1}", tileData.X, tileData.Y);
+            activeTiles[tileData.X, tileData.Y] = tile;
         }
     }
 
@@ -37,5 +39,10 @@ public class GameMap : MonoBehaviour
         {
             return new Vector2(activeTiles.GetLength(0), activeTiles.GetLength(1));
         }
+    }
+
+    public GameTile GetTile(int x, int y)
+    {
+        return activeTiles[x, y];
     }
 }

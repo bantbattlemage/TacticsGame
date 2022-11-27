@@ -21,6 +21,11 @@ public class GamePlayer : MonoBehaviour
         PlayerInterface.EndTurnButtonPressed += EndTurn;
     }
 
+    public void BeginTurn(int roundNumber)
+    {
+        PlayerInterface.UpdateDisplayInfo(roundNumber);
+    }
+
     private void EndTurn()
     {
         RequestEndTurn(this);

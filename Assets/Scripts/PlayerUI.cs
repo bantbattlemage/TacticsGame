@@ -9,6 +9,7 @@ public class PlayerUI : MonoBehaviour
     public Camera PlayerUiCamera;
 
     public TextMeshProUGUI PlayerName;
+    public TextMeshProUGUI RoundNumber;
 
     public Button EndTurnButton;
 
@@ -21,6 +22,11 @@ public class PlayerUI : MonoBehaviour
     {
         _playerName = playerName;
         PlayerName.text = _playerName;
+    }
+
+    public void UpdateDisplayInfo(int roundNumber)
+    {
+        RoundNumber.text = string.Format("Round: {0}", roundNumber+1);
     }
 
     public void OnEndTurnButtonPressed()

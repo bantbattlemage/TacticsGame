@@ -9,6 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fcbaf20894281e45a90f0d34dd92bbd, type: 3}
-  m_Name: MapData
+  m_Script: {fileID: 11500000, guid: c59da03b59add4e4b81a1c66c1d1d52b, type: 3}
+  m_Name: tile35
   m_EditorClassIdentifier: 
+  X: 3
+  Y: 5
+  Blocked: 0
+  Entities: []

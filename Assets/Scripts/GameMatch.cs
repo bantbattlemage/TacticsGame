@@ -11,6 +11,9 @@ public class GameMatch : MonoBehaviour
     [HideInInspector]
     public GamePlayer ActivePlayer;
 
+    [HideInInspector]
+    public int CurrentGameRound;
+
     public void Initialize(GameMap map, GamePlayer[] players)
     {
         Map = map;
@@ -22,13 +25,15 @@ public class GameMatch : MonoBehaviour
         int index = 0;
         foreach(GamePlayer p in players)
         {
-            string playerName = string.Format("Player {0}", index);
+            string playerName = string.Format("Player {0}", index+1);
             p.Initialize(index, playerName, map);
             p.RequestEndTurn += OnEndTurnRequestRecieved;
             index++;
         }
 
         SetActivePlayer(players[0]);
+
+        CurrentGameRound = 0;
     }
 
     private void OnEndTurnRequestRecieved(GamePlayer player)
@@ -46,6 +51,7 @@ public class GameMatch : MonoBehaviour
         if(index >= Players.Length)
         {
             index = 0;
+            CurrentGameRound++;
         }
 
         SetActivePlayer(Players[index]);
@@ -59,5 +65,7 @@ public class GameMatch : MonoBehaviour
         {
             p.gameObject.SetActive(p == ActivePlayer);
         }
+
+        ActivePlayer.BeginTurn(CurrentGameRound);
     }
 }
