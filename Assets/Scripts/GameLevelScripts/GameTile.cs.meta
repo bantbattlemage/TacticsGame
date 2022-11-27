@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: abb24b9f472f3a34788d2d7771e64868
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - BasePlane: {instanceID: 0}
+  - HilightPlane: {instanceID: 0}
+  - HilightGreenMaterial: {fileID: 2100000, guid: 49cf5497d9eae794e954e8c35e67cde5, type: 2}
+  - HilightRedMaterial: {fileID: 2100000, guid: 0d754a527de2cb74ebc4b422d975287b, type: 2}
+  - TileData: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
