@@ -14,12 +14,25 @@ public class PlayerTooltip : MonoBehaviour
     public Button ButtonThree;
     public Button ButtonFour;
 
+    private int _playerID;
+
     private void Awake()
     {
         DisableButtons();
     }
+
+    public void Initialize(GamePlayer player)
+    {
+        _playerID = player.PlayerID;
+    }
+
     private void DisableButtons()
     {
+        ButtonOne.onClick.RemoveAllListeners();
+        ButtonTwo.onClick.RemoveAllListeners();
+        ButtonThree.onClick.RemoveAllListeners();
+        ButtonFour.onClick.RemoveAllListeners();
+
         ButtonOne.gameObject.SetActive(false);
         ButtonTwo.gameObject.SetActive(false);
         ButtonThree.gameObject.SetActive(false);
@@ -70,7 +83,38 @@ public class PlayerTooltip : MonoBehaviour
 
     public void Select(GameData data)
     {
-        ButtonOne.gameObject.SetActive(true);
+        DisableButtons();
+
+        switch (data.DataType)
+        {
+            case GameDataType.Tile:
+                break;
+            case GameDataType.Entity:
+                GameEntityData gameEntityData = data as GameEntityData;
+                switch (gameEntityData.EntityType)
+                {
+                    case GameEntityType.Unit:
+                        UnitData unitData = data as UnitData;
+                        if (unitData.Owner == _playerID)
+                        {
+                            DynamicButtons.UnitMoveButton(ButtonOne, unitData);
+                            DynamicButtons.UnitAttackButton(ButtonTwo, unitData);
+                        }
+                        break;
+                    case GameEntityType.Building:
+                        BuildingData buildingData = data as BuildingData;
+                        if (buildingData.Owner == _playerID)
+                        {
+                            DynamicButtons.HqBuyButton(ButtonOne, buildingData);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     public void Deselect()

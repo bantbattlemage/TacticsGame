@@ -66,7 +66,7 @@ public class GameMap : MonoBehaviour
                 {
                     GameObject newEntity = Instantiate(data.Prefab, newlyInstantiatedTile.transform);
                     newEntity.transform.localPosition = new Vector3(0, 0, 0);
-                    newEntity.GetComponent<GameEntity>().Initialize(data);
+                    newEntity.GetComponent<GameEntity>().Initialize(data, new Vector2(tileData.X, tileData.Y));
                 }
             }
 
@@ -85,7 +85,14 @@ public class GameMap : MonoBehaviour
 
     public GameTile GetTile(int x, int y)
     {
-        return activeTiles[x, y];
+        if(x >= 0 && x < activeTiles.GetLength(0) && y >= 0 && y < activeTiles.GetLength(1))
+        {
+            return activeTiles[x, y];
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public GameTile[,] GameTiles

@@ -1,0 +1,38 @@
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public static class DynamicButtons
+{
+    public static void UnitMoveButton(Button button, UnitData unitData)
+    {
+        button.gameObject.SetActive(true);
+        button.GetComponentInChildren<TextMeshProUGUI>().text = "Move";
+        button.onClick.AddListener(() =>
+        {
+            GameController.Instance.CurrentGameMatch.ActivePlayer.BeginMoveUnit(unitData);
+        });
+    }
+
+    public static void UnitAttackButton(Button button, UnitData unitData)
+    {
+        button.gameObject.SetActive(true);
+        button.GetComponentInChildren<TextMeshProUGUI>().text = "Attack";
+        button.onClick.AddListener(() =>
+        {
+            Debug.Log("bleep");
+        });
+    }
+
+    public static void HqBuyButton(Button button, BuildingData buildingData)
+    {
+        button.gameObject.SetActive(true);
+        button.GetComponentInChildren<TextMeshProUGUI>().text = "Buy";
+        button.onClick.AddListener(() =>
+        {
+            Debug.Log("beep");
+        });
+    }
+}

@@ -8,9 +8,10 @@ public class GameEntity : MonoBehaviour
 {
     public GameEntityData Data;
 
-    public void Initialize(GameEntityData data)
+    public virtual void Initialize(GameEntityData data, Vector2 location)
     {
         Data = data;
+        Data.Location = location;
         SetPlayerColor();
     }
 

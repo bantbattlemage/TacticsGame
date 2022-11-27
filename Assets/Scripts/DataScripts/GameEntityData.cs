@@ -8,6 +8,7 @@ public class GameEntityData : GameData
     public GameEntityType EntityType;
     public int Owner = -1;
     public GameObject Prefab;
+    public Vector2 Location;
 
     public override GameDataType DataType
     {

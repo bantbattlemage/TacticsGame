@@ -31,6 +31,7 @@ public class PlayerUI : MonoBehaviour
         _playerName = player.PlayerName;
         PlayerGameCamera = player.PlayerCamera.GetComponent<Camera>();
         PlayerName.text = _playerName;
+        Tooltip.Initialize(player);
     }
 
     private void Update()
@@ -42,6 +43,11 @@ public class PlayerUI : MonoBehaviour
 
         ProcessTooltip();
         ProcessMouseClick();
+    }
+
+    public void ToggleLock()
+    {
+        _lockMouseOver = !_lockMouseOver;
     }
 
     private void SelectEntity(ObjectTooltip entityReference)

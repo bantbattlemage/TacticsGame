@@ -12,6 +12,12 @@ public class GameTile : MonoBehaviour
     public Material HilightRedMaterial;
     public TileData TileData;
 
+    private bool _isBeingUsedForMovement = false;
+
+    public delegate void GameTileMoveUnitEvent(GameTile sender);
+    public GameTileMoveUnitEvent GameTileMoveUnitMouseOver;
+    public GameTileMoveUnitEvent GameTileMoveUnitMouseClick;
+
     public void Initialize(TileData data)
     {
         TileData = data;
@@ -37,19 +43,77 @@ public class GameTile : MonoBehaviour
         HilightPlane.SetActive(false);
     }
 
-    private void OnMouseDown()
+    public void HilightGreen()
+    {
+        HilightPlane.GetComponent<MeshRenderer>().material = HilightGreenMaterial;
+        HilightPlane.SetActive(true);
+    }
+
+    public void HilightRed()
     {
         HilightPlane.GetComponent<MeshRenderer>().material = HilightRedMaterial;
+        HilightPlane.SetActive(true);
+    }
+
+    public void EnableHilightForMovement(GameTileMoveUnitEvent enterAction, GameTileMoveUnitEvent clickAction)
+    {
+        if (!_isBeingUsedForMovement)
+        {
+            HilightPlane.GetComponent<MeshRenderer>().material = HilightRedMaterial;
+            HilightPlane.SetActive(true);
+
+            GameTileMoveUnitMouseOver += enterAction;
+            GameTileMoveUnitMouseClick += clickAction;
+
+            _isBeingUsedForMovement = true;
+        }
+    }
+
+    public void DisableHilightForMovement()
+    {
+        if (_isBeingUsedForMovement)
+        {
+            HilightPlane.SetActive(false);
+            _isBeingUsedForMovement = false;
+
+            GameTileMoveUnitMouseOver = null;
+            GameTileMoveUnitMouseClick = null;
+        }
+    }
+
+    private void OnMouseDown()
+    {
+        if (_isBeingUsedForMovement)
+        {
+            GameTileMoveUnitMouseClick(this);
+        }
+        else
+        {
+            HilightPlane.GetComponent<MeshRenderer>().material = HilightRedMaterial;
+        }
+
     }
 
     private void OnMouseUp()
     {
-        HilightPlane.GetComponent<MeshRenderer>().material = HilightGreenMaterial;
+        if (_isBeingUsedForMovement)
+        {
+
+        }
+        else
+        {
+            HilightPlane.GetComponent<MeshRenderer>().material = HilightGreenMaterial;
+        }
     }
 
-    private void OnMouseOver()
+    private void OnMouseEnter()
     {
-        if (!HilightPlane.activeInHierarchy)
+        if(_isBeingUsedForMovement)
+        {
+            HilightPlane.GetComponent<MeshRenderer>().material = HilightGreenMaterial;
+            GameTileMoveUnitMouseOver(this);
+        }
+        else if (!HilightPlane.activeInHierarchy)
         {
             HilightPlane.SetActive(true);
             HilightPlane.GetComponent<MeshRenderer>().material = HilightGreenMaterial;
@@ -58,7 +122,11 @@ public class GameTile : MonoBehaviour
 
     private void OnMouseExit()
     {
-        if(HilightPlane.activeInHierarchy)
+        if (_isBeingUsedForMovement)
+        {
+            HilightPlane.GetComponent<MeshRenderer>().material = HilightRedMaterial;
+        }
+        else if(HilightPlane.activeInHierarchy)
         {
             HilightPlane.SetActive(false);
         }
