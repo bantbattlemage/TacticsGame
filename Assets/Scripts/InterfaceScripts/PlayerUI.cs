@@ -28,7 +28,7 @@ public class PlayerUI : MonoBehaviour
 
     public void Initialize(GamePlayer player)
     {
-        _playerName = player.PlayerName;
+        _playerName = player.GamePlayerData.Name;
         PlayerGameCamera = player.PlayerCamera.GetComponent<Camera>();
         PlayerName.text = _playerName;
         Tooltip.Initialize(player);

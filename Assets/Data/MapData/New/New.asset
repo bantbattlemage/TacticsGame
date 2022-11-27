@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fcbaf20894281e45a90f0d34dd92bbd, type: 3}
   m_Name: New
   m_EditorClassIdentifier: 
+  MapPlayers:
+  - {fileID: 11400000, guid: 965e3e0557a766143b86e4f36954cb6c, type: 2}
+  - {fileID: 11400000, guid: bd569204455a4fe4d9d5ba195313f19e, type: 2}
   MapTiles:
   - {fileID: 11400000, guid: 1c78fe30fdaf83d4d82ad36484da05e1, type: 2}
   - {fileID: 11400000, guid: 317bab186813d6d4c81bf359d17570fc, type: 2}

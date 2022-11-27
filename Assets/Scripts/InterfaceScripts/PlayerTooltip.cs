@@ -23,7 +23,7 @@ public class PlayerTooltip : MonoBehaviour
 
     public void Initialize(GamePlayer player)
     {
-        _playerID = player.PlayerID;
+        _playerID = player.GamePlayerData.ID;
     }
 
     private void DisableButtons()

@@ -7,8 +7,7 @@ using UnityEngine;
 
 public class GamePlayer : MonoBehaviour
 {
-    public int PlayerID;
-    public string PlayerName;
+    public PlayerData GamePlayerData;
     public GameCamera PlayerCamera;
     public PlayerUI PlayerInterface;
 
@@ -20,12 +19,11 @@ public class GamePlayer : MonoBehaviour
     public delegate void RequestEndTurnEvent(GamePlayer sendingPlayer);
     public RequestEndTurnEvent RequestEndTurn;
 
-    public void Initialize(int playerID, string playerName, GameMap map)
+    public void Initialize(PlayerData data, GameMap map)
     {
-        PlayerID = playerID;
-        PlayerName = playerName;
+        GamePlayerData = data;
         PlayerCamera.Initialize(map);
-        PlayerCamera.GetComponent<Camera>().depth = playerID;
+        PlayerCamera.GetComponent<Camera>().depth = data.ID;
         PlayerInterface.Initialize(this);
         PlayerInterface.EndTurnButtonPressed += EndTurn;
     }
@@ -42,7 +40,7 @@ public class GamePlayer : MonoBehaviour
     {
         PlayerInterface.UpdateDisplayInfo(roundNumber);
 
-        GameTile hqTile = GameController.Instance.CurrentGameMatch.Map.GetPlayerHQ(PlayerID);
+        GameTile hqTile = GameController.Instance.CurrentGameMatch.Map.GetPlayerHQ(GamePlayerData.ID);
         if(hqTile != null)
         {
             PlayerCamera.PanTo(hqTile.transform);
@@ -58,11 +56,34 @@ public class GamePlayer : MonoBehaviour
 
         for(int x = -range; x <= range; x++)
         {
-            for(int y = -range; y <= range; y++)
+            for (int y = -range; y <= range; y++)
             {
                 Vector2 target = new Vector2(unit.Location.x + x, unit.Location.y + y);
+
+                if (target.x == unit.Location.x && target.y == unit.Location.y)
+                {
+                    continue;
+                }
+
                 GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile((int)target.x, (int)target.y);
-                if (tile != null)
+
+                bool validate = true;
+
+                //  cannot walk on water
+                if (tile != null && tile.TileData.Type != TerrainType.Water)
+                {
+                    //  cannot move into tiles occupied by anything else
+                    if (tile.TileData.Entities != null && tile.TileData.Entities.Length > 0)
+                    {
+                        validate = false;
+                    }
+                }
+                else
+                {
+                    validate= false;
+                }
+
+                if (validate)
                 {
                     tiles.Add(tile);
                 }

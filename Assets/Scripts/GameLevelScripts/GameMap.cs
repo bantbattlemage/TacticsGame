@@ -1,6 +1,7 @@
 using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using UnityEditor;
@@ -14,19 +15,32 @@ public class GameMap : MonoBehaviour
 
     public static int TileSize = 10;
 
-    private void OnApplicationQuit()
+    public Vector2 MapSize
     {
-        ClearLoadedMapCache();
+        get
+        {
+            return new Vector2(activeTiles.GetLength(0), activeTiles.GetLength(1));
+        }
     }
 
-    public void MoveEntity(GameEntityData entity, List<Point> path)
+    public GameTile GetTile(int x, int y)
     {
-        GameTile startTile = activeTiles[(int)entity.Location.x, (int)entity.Location.y];
-        GameTile finalTile = activeTiles[path.Last().x, path.Last().y];
+        if (x >= 0 && x < activeTiles.GetLength(0) && y >= 0 && y < activeTiles.GetLength(1))
+        {
+            return activeTiles[x, y];
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-        startTile.RemoveEntity(entity);
-        finalTile.AddEntity(entity);
-        finalTile.SpawnEntity(entity);
+    public GameTile[,] GameTiles
+    {
+        get
+        {
+            return activeTiles;
+        }
     }
 
     public GameTile GetPlayerHQ(int playerId)
@@ -60,36 +74,48 @@ public class GameMap : MonoBehaviour
         return null;
     }
 
-    public void ClearLoadedMapCache()
+    public void MoveEntity(GameEntityData entity, List<Point> path)
     {
-        string[] pathsToDelete = new string[]
-        {
-            "Assets/LoadedLevel/",
-            "Assets/LoadedLevel/EntityData",
-            "Assets/LoadedLevel/TileData",
-        };
+        GameTile startTile = activeTiles[(int)entity.Location.x, (int)entity.Location.y];
+        GameTile finalTile = activeTiles[path.Last().x, path.Last().y];
 
-        AssetDatabase.DeleteAssets(pathsToDelete, new List<string>());
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
+        startTile.RemoveEntity(entity);
+        finalTile.AddEntity(entity);
+        finalTile.SpawnEntity(entity);
     }
 
-    public void LoadMap(string mapToLoadPath = "Assets/Data/MapData/New/")
+    public void LoadMap(string mapToLoadPath = "Assets/Data/MapData/New/", string mapName = "New")
     {
         ClearLoadedMapCache();
 
-        AssetDatabase.CreateFolder("Assets", "LoadedLevel");
+        AssetDatabase.CreateFolder("Assets/Cache", "LoadedLevel");
 
-        AssetDatabase.CreateFolder("Assets/LoadedLevel", "EntityData");
-        AssetDatabase.CreateFolder("Assets/LoadedLevel", "TileData");
+        AssetDatabase.CreateFolder("Assets/Cache/LoadedLevel", "EntityData");
+        AssetDatabase.CreateFolder("Assets/Cache/LoadedLevel", "TileData");
+        AssetDatabase.CreateFolder("Assets/Cache/LoadedLevel", "PlayerData");
 
-        AssetDatabase.CopyAsset(mapToLoadPath + mapData.name + ".asset", "Assets/LoadedLevel/" + mapData.name + ".asset");
+        string fullMapPathOriginal = mapToLoadPath + mapName + ".asset";
+        string fullMapPathCopy = "Assets/Cache/LoadedLevel/" + mapName + ".asset";
+        AssetDatabase.CopyAsset(fullMapPathOriginal, fullMapPathCopy);
+        MapData activeMapData = AssetDatabase.LoadAssetAtPath<MapData>(fullMapPathCopy);
+        mapData = activeMapData;
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        int xLength = mapData.MapTiles.Max(x => x.X) + 1;
-        int yLength = mapData.MapTiles.Max(x => x.Y) + 1;
+        List<PlayerData> activePlayers = new List<PlayerData>();
+        foreach (PlayerData playerData in activeMapData.MapPlayers)
+        {
+            string originalPath = mapToLoadPath + "PlayerData/" + playerData.name + ".asset";
+            string path = "Assets/Cache/LoadedLevel/PlayerData/" + playerData.name + ".asset";
+            AssetDatabase.CopyAsset(originalPath, path);
+            PlayerData activePlayerData = AssetDatabase.LoadAssetAtPath<PlayerData>(path);
+            activePlayers.Add(activePlayerData);
+        }
+        activeMapData.MapPlayers = activePlayers.ToArray();
+
+        int xLength = activeMapData.MapTiles.Max(x => x.X) + 1;
+        int yLength = activeMapData.MapTiles.Max(x => x.Y) + 1;
         activeTiles = new GameTile[xLength, yLength];
 
         GameObject root = new GameObject();
@@ -97,10 +123,10 @@ public class GameMap : MonoBehaviour
         root.transform.parent = transform;
         GameObject basicTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tile.prefab");
 
-        foreach(TileData tileData in mapData.MapTiles)
+        foreach(TileData tileData in activeMapData.MapTiles)
         {
             string originalPath = mapToLoadPath + "TileData/tile" + tileData.X + tileData.Y + ".asset";
-            string path = "Assets/LoadedLevel/TileData/tile" + tileData.X + tileData.Y + ".asset";
+            string path = "Assets/Cache/LoadedLevel/TileData/tile" + tileData.X + tileData.Y + ".asset";
             AssetDatabase.CopyAsset(originalPath, path);
             TileData activeData = AssetDatabase.LoadAssetAtPath<TileData>(path);
 
@@ -108,7 +134,7 @@ public class GameMap : MonoBehaviour
             foreach(GameEntityData entityData in activeData.Entities)
             {
                 originalPath = mapToLoadPath + "EntityData/" + entityData.name + ".asset";
-                path = "Assets/LoadedLevel/EntityData/tile" + entityData.name + ".asset";
+                path = "Assets/Cache/LoadedLevel/EntityData/tile" + entityData.name + ".asset";
                 AssetDatabase.CopyAsset(originalPath, path);
                 GameEntityData activeEntityData = AssetDatabase.LoadAssetAtPath<GameEntityData>(path);
                 activeEntities.Add(activeEntityData);
@@ -135,31 +161,23 @@ public class GameMap : MonoBehaviour
         AssetDatabase.Refresh();
     }
 
-    public Vector2 MapSize
+    public void ClearLoadedMapCache()
     {
-        get
+        string[] pathsToDelete = new string[]
         {
-            return new Vector2(activeTiles.GetLength(0), activeTiles.GetLength(1));
-        }
+            "Assets/Cache/LoadedLevel/",
+            "Assets/Cache/LoadedLevel/EntityData",
+            "Assets/Cache/LoadedLevel/TileData",
+            "Assets/Cache/LoadedLevel/PlayerData",
+        };
+
+        AssetDatabase.DeleteAssets(pathsToDelete, new List<string>());
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
-    public GameTile GetTile(int x, int y)
+    private void OnApplicationQuit()
     {
-        if(x >= 0 && x < activeTiles.GetLength(0) && y >= 0 && y < activeTiles.GetLength(1))
-        {
-            return activeTiles[x, y];
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    public GameTile[,] GameTiles
-    {
-        get
-        {
-            return activeTiles;
-        }
+        ClearLoadedMapCache();
     }
 }

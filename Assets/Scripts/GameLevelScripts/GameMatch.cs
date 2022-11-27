@@ -5,40 +5,42 @@ using System.Linq;
 
 public class GameMatch : MonoBehaviour
 {
+    public MatchData matchData;
+
     public GameMap Map;
     public GamePlayer[] Players;
 
-    [HideInInspector]
-    public GamePlayer ActivePlayer;
-
-    [HideInInspector]
-    public int CurrentGameRound;
+    public GamePlayer GetActivePlayer()
+    {
+        return Players[matchData.CurrentActivePlayer];
+    }
 
     public void Initialize(GameMap map, GamePlayer[] players)
     {
         Map = map;
         Players = players;
 
-        map.transform.parent = transform;
-        map.LoadMap();
+        string mapToLoadPath = "Assets/Data/MapData/New/";
+        string mapName = "New";
+
+        Map.transform.parent = transform;
+        Map.LoadMap(mapToLoadPath, mapName);
 
         int index = 0;
         foreach(GamePlayer p in players)
         {
-            string playerName = string.Format("Player {0}", index+1);
-            p.Initialize(index, playerName, map);
+            p.Initialize(Map.mapData.MapPlayers[index], Map);
             p.RequestEndTurn += OnEndTurnRequestRecieved;
             index++;
         }
 
-        CurrentGameRound = 0;
-
-        SetActivePlayer(players[0]);
+        matchData.CurrentRound = 0;
+        SetActivePlayer(0);
     }
 
     private void OnEndTurnRequestRecieved(GamePlayer player)
     {
-        if(player == ActivePlayer)
+        if(player.GamePlayerData.ID == matchData.CurrentActivePlayer)
         {
             EndCurrentPlayerTurn();
         }
@@ -46,26 +48,27 @@ public class GameMatch : MonoBehaviour
 
     public void EndCurrentPlayerTurn()
     {
-        int index = ActivePlayer.PlayerID;
+        int index = matchData.CurrentActivePlayer;
         index++;
+        
         if(index >= Players.Length)
         {
             index = 0;
-            CurrentGameRound++;
+            matchData.CurrentRound++;
         }
 
-        SetActivePlayer(Players[index]);
+        SetActivePlayer(index);
     }
 
-    public void SetActivePlayer(GamePlayer player)
+    public void SetActivePlayer(int playerID)
     {
-        ActivePlayer = player;
+        matchData.CurrentActivePlayer = playerID;
 
         foreach(GamePlayer p in Players)
         {
-            p.gameObject.SetActive(p == ActivePlayer);
+            p.gameObject.SetActive(p.GamePlayerData.ID == playerID);
         }
 
-        ActivePlayer.BeginTurn(CurrentGameRound);
+        Players[playerID].BeginTurn(matchData.CurrentRound);
     }
 }

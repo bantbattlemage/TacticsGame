@@ -12,7 +12,7 @@ public static class DynamicButtons
         button.GetComponentInChildren<TextMeshProUGUI>().text = "Move";
         button.onClick.AddListener(() =>
         {
-            GameController.Instance.CurrentGameMatch.ActivePlayer.BeginMoveUnit(unitData);
+            GameController.Instance.CurrentGameMatch.GetActivePlayer().BeginMoveUnit(unitData);
         });
     }
 

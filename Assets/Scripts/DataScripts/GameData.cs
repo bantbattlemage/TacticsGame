@@ -6,7 +6,10 @@ public enum GameDataType
 {
     UNASSIGNED,
     Tile,
-    Entity
+    Entity,
+    Map,
+    Player,
+    Match
 }
 
 public class GameData : ScriptableObject
