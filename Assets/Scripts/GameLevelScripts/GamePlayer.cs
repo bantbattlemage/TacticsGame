@@ -15,6 +15,7 @@ public class GamePlayer : MonoBehaviour
     private bool _isMovingUnit = false;
     private UnitData _activeMoveUnit = null;
     private List<GameTile> _activeMoveTiles = new List<GameTile>();
+    private List<Point> _cachedPath = new List<Point>();
 
     public delegate void RequestEndTurnEvent(GamePlayer sendingPlayer);
     public RequestEndTurnEvent RequestEndTurn;
@@ -93,6 +94,8 @@ public class GamePlayer : MonoBehaviour
         _activeMoveUnit = null;
         _activeMoveTiles = null;
         _isMovingUnit = false;
+
+        PlayerInterface.ToggleLock();
     }
 
     private void OnGameTileMoveUnitEnterAction(GameTile sender)
@@ -109,6 +112,7 @@ public class GamePlayer : MonoBehaviour
         Point from = new Point((int)_activeMoveUnit.Location.x, (int)_activeMoveUnit.Location.y);
         Point to = new Point(sender.TileData.X, sender.TileData.Y); 
         List<Point> path = Pathfinding.FindPath(grid, from, to, Pathfinding.DistanceType.Manhattan);
+        _cachedPath = path;
 
         foreach(Point p in path)
         {
@@ -135,6 +139,7 @@ public class GamePlayer : MonoBehaviour
 
     private void OnGameTileMoveClickAction(GameTile sender)
     {
+        GameController.Instance.CurrentGameMatch.Map.MoveEntity(_activeMoveUnit, _cachedPath);
         CancelMoveUnit();
     }
 

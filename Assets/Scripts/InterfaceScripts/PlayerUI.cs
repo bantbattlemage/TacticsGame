@@ -48,6 +48,11 @@ public class PlayerUI : MonoBehaviour
     public void ToggleLock()
     {
         _lockMouseOver = !_lockMouseOver;
+
+        if(!_lockMouseOver)
+        {
+            Tooltip.Deselect();
+        }
     }
 
     private void SelectEntity(ObjectTooltip entityReference)

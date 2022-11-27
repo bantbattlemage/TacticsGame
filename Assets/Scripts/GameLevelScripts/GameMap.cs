@@ -1,3 +1,4 @@
+using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,16 @@ public class GameMap : MonoBehaviour
     private GameTile[,] activeTiles;
 
     public static int TileSize = 10;
+
+    public void MoveEntity(GameEntityData entity, List<Point> path)
+    {
+        GameTile startTile = activeTiles[(int)entity.Location.x, (int)entity.Location.y];
+        GameTile finalTile = activeTiles[path.Last().x, path.Last().y];
+
+        startTile.RemoveEntity(entity);
+        finalTile.AddEntity(entity);
+        finalTile.SpawnEntity(entity);
+    }
 
     public GameTile GetPlayerHQ(int playerId)
     {
@@ -64,9 +75,7 @@ public class GameMap : MonoBehaviour
             {
                 foreach (GameEntityData data in tileData.Entities)
                 {
-                    GameObject newEntity = Instantiate(data.Prefab, newlyInstantiatedTile.transform);
-                    newEntity.transform.localPosition = new Vector3(0, 0, 0);
-                    newEntity.GetComponent<GameEntity>().Initialize(data, new Vector2(tileData.X, tileData.Y));
+                    tile.SpawnEntity(data);
                 }
             }
 

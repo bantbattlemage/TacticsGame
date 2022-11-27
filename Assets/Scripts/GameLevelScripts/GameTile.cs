@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Tilemaps;
+using static UnityEngine.EventSystems.EventTrigger;
 
 [System.Serializable]
 public class GameTile : MonoBehaviour
@@ -11,6 +14,8 @@ public class GameTile : MonoBehaviour
     public Material HilightGreenMaterial;
     public Material HilightRedMaterial;
     public TileData TileData;
+
+    public List<GameEntity> SpawnedEntities = new List<GameEntity>();
 
     private bool _isBeingUsedForMovement = false;
 
@@ -41,6 +46,49 @@ public class GameTile : MonoBehaviour
 
         BasePlane.SetActive(true);
         HilightPlane.SetActive(false);
+    }
+
+    public void AddEntity(GameEntityData entityToAdd)
+    {
+        List<GameEntityData> entities = TileData.Entities.ToList();
+        entities.Add(entityToAdd);
+        TileData.Entities = entities.ToArray();
+    }
+
+    public void SpawnEntity(GameEntityData entityToSpawn)
+    {
+        if (TileData.Entities.Contains(entityToSpawn))
+        {
+            GameObject newEntity = Instantiate(entityToSpawn.Prefab, transform);
+            GameEntity entity = newEntity.GetComponent<GameEntity>();
+            newEntity.transform.localPosition = new Vector3(0, 0, 0);
+            entity.Initialize(entityToSpawn, new Vector2(TileData.X, TileData.Y));
+            SpawnedEntities.Add(entity);
+        }
+        else
+        {
+            Debug.LogError("Entity is not in tile!");
+        }
+    }
+
+    public void RemoveEntity(GameEntityData entityToRemove)
+    {
+        if (TileData.Entities.Contains(entityToRemove))
+        {
+            List<GameEntityData> entities = TileData.Entities.ToList();
+
+            GameEntity target = SpawnedEntities.First(x => x.Data == entityToRemove);
+
+            Destroy(target.gameObject);
+            SpawnedEntities.Remove(target);
+
+            entities.Remove(entityToRemove);
+            TileData.Entities = entities.ToArray();
+        }
+        else
+        {
+            Debug.LogError("Entity is not in tile!");
+        }
     }
 
     public void HilightGreen()
