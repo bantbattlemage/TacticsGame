@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   X: 3
   Y: 9
-  Type: 0
+  Type: 1
   Entities: []

@@ -23,8 +23,10 @@ public class GameTile : MonoBehaviour
                 terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Terrain/TerrainGrass.mat");
                 break;
             case TerrainType.Forest:
+                terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Terrain/TerrainForest.mat");
                 break;
             case TerrainType.Water:
+                terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Terrain/TerrainWater.mat");
                 break;
             default:
                 break;

@@ -27,7 +27,6 @@ public class LevelEditorController : MonoBehaviour
     public GameObject BasicTile;
     public int TileSize = 10;
 
-    [SerializeField]
     public GameObject[,] LoadedTiles;
 
     private void Update()
@@ -80,6 +79,8 @@ public class LevelEditorController : MonoBehaviour
                 newTiles.Add(data);
             }
         }
+
+        AssetDatabase.SaveAssets();
 
         newMapData.MapTiles = newTiles.ToArray();
 
