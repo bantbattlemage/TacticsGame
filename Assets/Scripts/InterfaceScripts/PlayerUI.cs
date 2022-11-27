@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
+using System.Linq;
 
 public class PlayerUI : MonoBehaviour
 {
@@ -19,6 +21,7 @@ public class PlayerUI : MonoBehaviour
 
     private string _playerName;
     private RaycastHit _cachedMouseOver;
+    private bool _lockMouseOver = false;
 
     public delegate void ButtonPressedEvent();
     public ButtonPressedEvent EndTurnButtonPressed;
@@ -38,10 +41,57 @@ public class PlayerUI : MonoBehaviour
         }
 
         ProcessTooltip();
+        ProcessMouseClick();
+    }
+
+    private void SelectEntity(ObjectTooltip entityReference)
+    {
+        _lockMouseOver = false;
+        ProcessTooltip();
+        Tooltip.Select(entityReference.DataSource);
+        _lockMouseOver = true;
+    }
+
+    private void ProcessMouseClick()
+    {
+        if(IsOverInterface())
+        {
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            Ray rayOrigin = PlayerGameCamera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(rayOrigin, out hit))
+            {
+                ObjectTooltip toolTip = hit.transform.gameObject.GetComponent<ObjectTooltip>();
+                if (toolTip != null && toolTip.DataSource.DataType == GameDataType.Entity)
+                {
+                    SelectEntity(toolTip);
+                }
+            }
+            else if(_lockMouseOver)
+            {
+                _lockMouseOver = false;
+                Tooltip.Deselect();
+            }
+        }
+
+        if(Input.GetMouseButtonDown(1))
+        {
+            _lockMouseOver = false;
+            Tooltip.Deselect();
+        }
     }
 
     private void ProcessTooltip()
     {
+        if(_lockMouseOver)
+        {
+            return;
+        }
+
         RaycastHit hit;
         Ray rayOrigin = PlayerGameCamera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(rayOrigin, out hit) && _cachedMouseOver.transform != hit.transform)
@@ -53,6 +103,15 @@ public class PlayerUI : MonoBehaviour
                 Tooltip.UpdateTooltip(toolTip.DataSource);
             }
         }
+    }
+
+    private bool IsOverInterface()
+    {
+        PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+        eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+        return results.Where(x => x.gameObject.layer == 5).Count() > 0;
     }
 
     public void UpdateDisplayInfo(int roundNumber)

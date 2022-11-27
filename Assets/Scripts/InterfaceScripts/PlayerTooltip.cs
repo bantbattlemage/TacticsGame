@@ -2,11 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerTooltip : MonoBehaviour
 {
     public TextMeshProUGUI TooltipTitle;
     public TextMeshProUGUI TooltipContent;
+
+    public Button ButtonOne;
+    public Button ButtonTwo;
+    public Button ButtonThree;
+    public Button ButtonFour;
+
+    private void Awake()
+    {
+        DisableButtons();
+    }
+    private void DisableButtons()
+    {
+        ButtonOne.gameObject.SetActive(false);
+        ButtonTwo.gameObject.SetActive(false);
+        ButtonThree.gameObject.SetActive(false);
+        ButtonFour.gameObject.SetActive(false);
+    }
 
     public void UpdateTooltip(GameData data)
     {
@@ -29,10 +47,12 @@ public class PlayerTooltip : MonoBehaviour
                     case GameEntityType.Unit:
                         UnitData unitData = data as UnitData;
                         content = unitData.Type.ToString();
+                        content += "\nOwner PlayerID: " + unitData.Owner.ToString();
                         break;
                     case GameEntityType.Building:
                         BuildingData buildingData = data as BuildingData;
                         content = buildingData.Type.ToString();
+                        content += "\nOwner PlayerID: " + buildingData.Owner.ToString();
                         break;
                     default:
                         Debug.LogWarning("invalid data on tooltip!");
@@ -46,5 +66,15 @@ public class PlayerTooltip : MonoBehaviour
 
         TooltipTitle.text = title;
         TooltipContent.text = content;
+    }
+
+    public void Select(GameData data)
+    {
+        ButtonOne.gameObject.SetActive(true);
+    }
+
+    public void Deselect()
+    {
+        DisableButtons();
     }
 }
