@@ -29,6 +29,8 @@ public class GameController : MonoBehaviour
     public GameMatch StartMatch(int numberOfPlayers)
     {
         GameMatch newMatch = Instantiate(AssetDatabase.LoadAssetAtPath<GameMatch>("Assets/Prefabs/GameMatch.prefab"));
+        CurrentGameMatch = newMatch;
+
         GamePlayer[] players = new GamePlayer[numberOfPlayers];
 
         for(int i = 0; i < players.Length; i++)
@@ -38,8 +40,6 @@ public class GameController : MonoBehaviour
         }
 
         newMatch.Initialize(Instantiate(AssetDatabase.LoadAssetAtPath<GameMap>("Assets/Prefabs/GameMap.prefab")), players);
-
-        CurrentGameMatch = newMatch;
 
         return newMatch;
     }

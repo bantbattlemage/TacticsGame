@@ -24,6 +24,12 @@ public class GamePlayer : MonoBehaviour
     public void BeginTurn(int roundNumber)
     {
         PlayerInterface.UpdateDisplayInfo(roundNumber);
+
+        GameTile hqTile = GameController.Instance.CurrentGameMatch.Map.GetPlayerHQ(PlayerID);
+        if(hqTile != null )
+        {
+            PlayerCamera.PanTo(hqTile.transform);
+        }
     }
 
     private void EndTurn()

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88cca42de8359e744be61a321eb7601f, type: 3}
   m_Name: HQ_Player1
   m_EditorClassIdentifier: 
-  Owner: 0
+  Owner: 1
   Prefab: {fileID: 4379241539801061471, guid: 739085eae109d6445b64023587decf01, type: 3}
   Type: 0

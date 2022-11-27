@@ -12,6 +12,37 @@ public class GameMap : MonoBehaviour
 
     public static int TileSize = 10;
 
+    public GameTile GetPlayerHQ(int playerId)
+    {
+        for(int x = 0; x < activeTiles.GetLength(0); x++)
+        {
+            for (int y = 0; y < activeTiles.GetLength(1); y++)
+            {
+                TileData tile = activeTiles[x, y].TileData;
+
+                if (tile.Entities != null && tile.Entities.Length > 0)
+                {
+                    try
+                    {
+                        foreach (BuildingData buildingData in tile.Entities)
+                        {
+                            if (buildingData.Owner == playerId && buildingData.Type == BuildingType.HQ)
+                            {
+                                return activeTiles[x, y];
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        //  fail silently on non-HQ entities
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     public void LoadMap()
     {
         int xLength = mapData.MapTiles.Max(x => x.X) + 1;
@@ -34,6 +65,7 @@ public class GameMap : MonoBehaviour
                 foreach (GameEntityData data in tileData.Entities)
                 {
                     GameObject newEntity = Instantiate(data.Prefab, newlyInstantiatedTile.transform);
+                    newEntity.transform.localPosition = new Vector3(0, 0, 0);
                     newEntity.GetComponent<GameEntity>().Initialize(data);
                 }
             }
@@ -54,5 +86,13 @@ public class GameMap : MonoBehaviour
     public GameTile GetTile(int x, int y)
     {
         return activeTiles[x, y];
+    }
+
+    public GameTile[,] GameTiles
+    {
+        get
+        {
+            return activeTiles;
+        }
     }
 }

@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88cca42de8359e744be61a321eb7601f, type: 3}
-  m_Name: HQ_Player0
+  m_Script: {fileID: 11500000, guid: d33b332cfc0bfcf478cd2a1675ce249c, type: 3}
+  m_Name: Commander_Player1
   m_EditorClassIdentifier: 
-  Owner: 0
-  Prefab: {fileID: 4379241539801061471, guid: 739085eae109d6445b64023587decf01, type: 3}
+  Owner: 1
+  Prefab: {fileID: 5370306762599958970, guid: d78cd5936ee233a47a10697aeeae38e9, type: 3}
   Type: 0

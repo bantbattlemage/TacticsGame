@@ -9,7 +9,7 @@ public class StartMenu : MonoBehaviour
 
     public void OnStartGameButtonPressed()
     {
-        GameController.Instance.StartMatch(4);
+        GameController.Instance.StartMatch(2);
         gameObject.SetActive(false);
     }
 }

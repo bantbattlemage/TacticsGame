@@ -31,9 +31,9 @@ public class GameMatch : MonoBehaviour
             index++;
         }
 
-        SetActivePlayer(players[0]);
-
         CurrentGameRound = 0;
+
+        SetActivePlayer(players[0]);
     }
 
     private void OnEndTurnRequestRecieved(GamePlayer player)
