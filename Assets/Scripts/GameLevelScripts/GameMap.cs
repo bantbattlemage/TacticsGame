@@ -2,6 +2,7 @@ using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +13,11 @@ public class GameMap : MonoBehaviour
     private GameTile[,] activeTiles;
 
     public static int TileSize = 10;
+
+    private void OnApplicationQuit()
+    {
+        ClearLoadedMapCache();
+    }
 
     public void MoveEntity(GameEntityData entity, List<Point> path)
     {
@@ -54,8 +60,34 @@ public class GameMap : MonoBehaviour
         return null;
     }
 
-    public void LoadMap()
+    public void ClearLoadedMapCache()
     {
+        string[] pathsToDelete = new string[]
+        {
+            "Assets/LoadedLevel/",
+            "Assets/LoadedLevel/EntityData",
+            "Assets/LoadedLevel/TileData",
+        };
+
+        AssetDatabase.DeleteAssets(pathsToDelete, new List<string>());
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
+
+    public void LoadMap(string mapToLoadPath = "Assets/Data/MapData/New/")
+    {
+        ClearLoadedMapCache();
+
+        AssetDatabase.CreateFolder("Assets", "LoadedLevel");
+
+        AssetDatabase.CreateFolder("Assets/LoadedLevel", "EntityData");
+        AssetDatabase.CreateFolder("Assets/LoadedLevel", "TileData");
+
+        AssetDatabase.CopyAsset(mapToLoadPath + mapData.name + ".asset", "Assets/LoadedLevel/" + mapData.name + ".asset");
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
         int xLength = mapData.MapTiles.Max(x => x.X) + 1;
         int yLength = mapData.MapTiles.Max(x => x.Y) + 1;
         activeTiles = new GameTile[xLength, yLength];
@@ -67,21 +99,40 @@ public class GameMap : MonoBehaviour
 
         foreach(TileData tileData in mapData.MapTiles)
         {
-            GameObject newlyInstantiatedTile = Instantiate(basicTile, new Vector3(tileData.X * TileSize, 0, tileData.Y * TileSize), new Quaternion(), root.transform);
-            GameTile tile = newlyInstantiatedTile.GetComponent<GameTile>();
-            tile.Initialize(tileData);
+            string originalPath = mapToLoadPath + "TileData/tile" + tileData.X + tileData.Y + ".asset";
+            string path = "Assets/LoadedLevel/TileData/tile" + tileData.X + tileData.Y + ".asset";
+            AssetDatabase.CopyAsset(originalPath, path);
+            TileData activeData = AssetDatabase.LoadAssetAtPath<TileData>(path);
 
-            if (tileData.Entities != null && tileData.Entities.Length > 0)
+            List<GameEntityData> activeEntities = new List<GameEntityData>();
+            foreach(GameEntityData entityData in activeData.Entities)
             {
-                foreach (GameEntityData data in tileData.Entities)
+                originalPath = mapToLoadPath + "EntityData/" + entityData.name + ".asset";
+                path = "Assets/LoadedLevel/EntityData/tile" + entityData.name + ".asset";
+                AssetDatabase.CopyAsset(originalPath, path);
+                GameEntityData activeEntityData = AssetDatabase.LoadAssetAtPath<GameEntityData>(path);
+                activeEntities.Add(activeEntityData);
+            }
+            activeData.Entities = activeEntities.ToArray();
+
+            GameObject newlyInstantiatedTile = Instantiate(basicTile, new Vector3(activeData.X * TileSize, 0, activeData.Y * TileSize), new Quaternion(), root.transform);
+            GameTile tile = newlyInstantiatedTile.GetComponent<GameTile>();
+            tile.Initialize(activeData);
+
+            if (activeData.Entities != null && activeData.Entities.Length > 0)
+            {
+                foreach (GameEntityData data in activeData.Entities)
                 {
                     tile.SpawnEntity(data);
                 }
             }
 
-            newlyInstantiatedTile.name = string.Format("{0},{1}", tileData.X, tileData.Y);
-            activeTiles[tileData.X, tileData.Y] = tile;
+            newlyInstantiatedTile.name = string.Format("{0},{1}", activeData.X, activeData.Y);
+            activeTiles[activeData.X, activeData.Y] = tile;
         }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
     public Vector2 MapSize
