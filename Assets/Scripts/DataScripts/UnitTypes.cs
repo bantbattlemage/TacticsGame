@@ -1,4 +1,4 @@
-public enum UnitType
+public enum GameUnitType
 {
     Commander,
     Regular

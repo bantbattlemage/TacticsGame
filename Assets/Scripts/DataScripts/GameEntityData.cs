@@ -5,9 +5,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GameEntityData", menuName = "ScriptableObjects/GameEntityData", order = 1)]
 public class GameEntityData : GameData
 {
-    public GameEntityType EntityType;
+    public GameDefinition Definition;
     public int Owner = -1;
-    public GameObject Prefab;
     public Vector2 Location;
 
     public override GameDataType DataType

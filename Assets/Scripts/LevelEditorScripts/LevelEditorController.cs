@@ -124,7 +124,7 @@ public class LevelEditorController : MonoBehaviour
                     {
                         foreach(GameEntityData data in tileData.Entities)
                         {
-                            GameObject newEntity = Instantiate(data.Prefab, newlyInstantiatedTile.transform);
+                            GameObject newEntity = Instantiate(data.Definition.Prefab, newlyInstantiatedTile.transform);
                             newEntity.GetComponent<GameEntity>().Initialize(data, new Vector2(tileData.X, tileData.Y));
                         }
                     }

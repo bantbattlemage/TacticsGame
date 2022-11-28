@@ -44,9 +44,13 @@ public class GameMatch : MonoBehaviour
         {
             EndCurrentPlayerTurn();
         }
+        else
+        {
+            throw new System.Exception("recieved end turn request from incorrect player!");
+        }
     }
 
-    public void EndCurrentPlayerTurn()
+    private void EndCurrentPlayerTurn()
     {
         int index = matchData.CurrentActivePlayer;
         index++;
@@ -60,7 +64,7 @@ public class GameMatch : MonoBehaviour
         SetActivePlayer(index);
     }
 
-    public void SetActivePlayer(int playerID)
+    private void SetActivePlayer(int playerID)
     {
         matchData.CurrentActivePlayer = playerID;
 

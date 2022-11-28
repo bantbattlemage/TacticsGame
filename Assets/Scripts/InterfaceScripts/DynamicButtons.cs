@@ -22,7 +22,7 @@ public static class DynamicButtons
         button.GetComponentInChildren<TextMeshProUGUI>().text = "Attack";
         button.onClick.AddListener(() =>
         {
-            Debug.Log("bleep");
+            GameController.Instance.CurrentGameMatch.GetActivePlayer().BeginUnitAttack(unitData);
         });
     }
 

@@ -55,16 +55,20 @@ public class PlayerTooltip : MonoBehaviour
                 GameEntityData entityData = data as GameEntityData;
                 title = entityData.DataType.ToString();
 
-                switch (entityData.EntityType)
+                switch (entityData.Definition.EntityType)
                 {
                     case GameEntityType.Unit:
                         UnitData unitData = data as UnitData;
-                        content = unitData.Type.ToString();
+                        UnitDefinition unitDefinition = (UnitDefinition)unitData.Definition;
+                        content = unitDefinition.UnitType.ToString();
                         content += "\nOwner PlayerID: " + unitData.Owner.ToString();
+                        content += string.Format("\nMovement: {0}/{1}", unitData.RemainingMovement, unitDefinition.BaseMovement);
+                        content += string.Format("\nAttacks: {0}/{1}", unitData.RemainingAttacks, unitDefinition.BaseNumberOfAttacks);
+                        content += string.Format("\nHealth: {0}/{1}", unitData.RemainingHealth, unitDefinition.BaseHealth);
                         break;
                     case GameEntityType.Building:
                         BuildingData buildingData = data as BuildingData;
-                        content = buildingData.Type.ToString();
+                        content = ((BuildingDefinition)buildingData.Definition).BuildingType.ToString();
                         content += "\nOwner PlayerID: " + buildingData.Owner.ToString();
                         break;
                     default:
@@ -91,7 +95,7 @@ public class PlayerTooltip : MonoBehaviour
                 break;
             case GameDataType.Entity:
                 GameEntityData gameEntityData = data as GameEntityData;
-                switch (gameEntityData.EntityType)
+                switch (gameEntityData.Definition.EntityType)
                 {
                     case GameEntityType.Unit:
                         UnitData unitData = data as UnitData;

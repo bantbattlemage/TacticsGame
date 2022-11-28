@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88cca42de8359e744be61a321eb7601f, type: 3}
   m_Name: HQ_Player0
   m_EditorClassIdentifier: 
-  EntityType: 2
+  Definition: {fileID: 11400000, guid: c9070ba239e35654887e75353879da5d, type: 2}
   Owner: 0
-  Prefab: {fileID: 4379241539801061471, guid: 739085eae109d6445b64023587decf01, type: 3}
+  Location: {x: 0, y: 0}
   Type: 0

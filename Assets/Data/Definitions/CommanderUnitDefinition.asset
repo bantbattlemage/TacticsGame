@@ -9,10 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88cca42de8359e744be61a321eb7601f, type: 3}
-  m_Name: HQ_Player1
+  m_Script: {fileID: 11500000, guid: ff22e7237394f734383baf46619d96e2, type: 3}
+  m_Name: CommanderUnitDefinition
   m_EditorClassIdentifier: 
-  Definition: {fileID: 11400000, guid: c9070ba239e35654887e75353879da5d, type: 2}
-  Owner: 1
-  Location: {x: 0, y: 0}
-  Type: 0
+  Prefab: {fileID: 5370306762599958970, guid: d78cd5936ee233a47a10697aeeae38e9, type: 3}
+  BaseHealth: 10
+  BaseMovement: 3

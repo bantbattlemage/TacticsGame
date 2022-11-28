@@ -59,7 +59,7 @@ public class GameTile : MonoBehaviour
     {
         if (TileData.Entities.Contains(entityToSpawn))
         {
-            GameObject newEntity = Instantiate(entityToSpawn.Prefab, transform);
+            GameObject newEntity = Instantiate(entityToSpawn.Definition.Prefab, transform);
             GameEntity entity = newEntity.GetComponent<GameEntity>();
             newEntity.transform.localPosition = new Vector3(0, 0, 0);
             entity.Initialize(entityToSpawn, new Vector2(TileData.X, TileData.Y));

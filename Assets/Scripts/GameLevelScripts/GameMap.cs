@@ -43,6 +43,24 @@ public class GameMap : MonoBehaviour
         }
     }
 
+    public List<GameEntity> GetAllPlayerEntities(int playerId)
+    {
+        List<GameEntity> gameEntities = new List<GameEntity>();
+
+        foreach(GameTile tile in activeTiles)
+        {
+            foreach(GameEntity e in tile.SpawnedEntities)
+            {
+                if(e.Data.Owner == playerId)
+                {
+                    gameEntities.Add(e);
+                }
+            }
+        }
+
+        return gameEntities;
+    }
+
     public GameTile GetPlayerHQ(int playerId)
     {
         for(int x = 0; x < activeTiles.GetLength(0); x++)
@@ -57,7 +75,7 @@ public class GameMap : MonoBehaviour
                     {
                         foreach (BuildingData buildingData in tile.Entities)
                         {
-                            if (buildingData.Owner == playerId && buildingData.Type == BuildingType.HQ)
+                            if (buildingData.Owner == playerId && ((BuildingDefinition)buildingData.Definition).BuildingType == GameBuildingType.HQ)
                             {
                                 return activeTiles[x, y];
                             }

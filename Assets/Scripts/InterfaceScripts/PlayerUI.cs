@@ -45,6 +45,16 @@ public class PlayerUI : MonoBehaviour
         ProcessMouseClick();
     }
 
+    public void SetLock(bool set)
+    {
+        _lockMouseOver = set;
+
+        if (!_lockMouseOver)
+        {
+            Tooltip.Deselect();
+        }
+    }
+
     public void ToggleLock()
     {
         _lockMouseOver = !_lockMouseOver;

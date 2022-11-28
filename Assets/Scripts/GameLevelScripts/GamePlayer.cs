@@ -12,6 +12,7 @@ public class GamePlayer : MonoBehaviour
     public PlayerUI PlayerInterface;
 
     private bool _isMovingUnit = false;
+    private int _cachedMaxMoveDistance = 0;
     private UnitData _activeMoveUnit = null;
     private List<GameTile> _activeMoveTiles = new List<GameTile>();
     private List<Point> _cachedPath = new List<Point>();
@@ -30,6 +31,7 @@ public class GamePlayer : MonoBehaviour
 
     private void Update()
     {
+        //  right click cancel
         if(_isMovingUnit && Input.GetMouseButtonDown(1))
         {
             CancelMoveUnit();
@@ -38,7 +40,11 @@ public class GamePlayer : MonoBehaviour
 
     public void BeginTurn(int roundNumber)
     {
+        CancelMoveUnit();
+
         PlayerInterface.UpdateDisplayInfo(roundNumber);
+
+        RefreshAllPlayerEntities();
 
         GameTile hqTile = GameController.Instance.CurrentGameMatch.Map.GetPlayerHQ(GamePlayerData.ID);
         if(hqTile != null)
@@ -47,19 +53,52 @@ public class GamePlayer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Refresh all turn actions. (Called on turn start)
+    /// </summary>
+    public void RefreshAllPlayerEntities()
+    {
+        List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID);
+
+        foreach (GameEntity entity in entities)
+        {
+            switch (entity.Data.Definition.EntityType)
+            {
+                case GameEntityType.Unit:
+                    UnitData unitData = entity.Data as UnitData;
+                    UnitDefinition unitDefinition = unitData.Definition as UnitDefinition;
+                    unitData.RemainingMovement = unitDefinition.BaseMovement;
+                    unitData.RemainingAttacks = unitDefinition.BaseNumberOfAttacks;
+                    break;
+                case GameEntityType.Building:
+                    break;
+            }
+        }
+    }
+
+    public void BeginUnitAttack(UnitData unit)
+    {
+ 
+    }
+
     public void BeginMoveUnit(UnitData unit)
     {
-        PlayerInterface.ToggleLock();
-
         List<GameTile> tiles = new List<GameTile>();
-        int range = 3;
+        int range = unit.RemainingMovement;
+        _cachedMaxMoveDistance = range;
 
-        for(int x = -range; x <= range; x++)
+        if(range <= 0)
+        {
+            return;
+        }
+
+        for (int x = -range; x <= range; x++)
         {
             for (int y = -range; y <= range; y++)
             {
                 Vector2 target = new Vector2(unit.Location.x + x, unit.Location.y + y);
 
+                //  ignore tile already on
                 if (target.x == unit.Location.x && target.y == unit.Location.y)
                 {
                     continue;
@@ -69,9 +108,14 @@ public class GamePlayer : MonoBehaviour
 
                 bool validate = true;
 
-                //  cannot walk on water
-                if (tile != null && tile.TileData.Type != TerrainType.Water)
+                if (tile != null)
                 {
+                    //  no walking on water
+                    if(tile.TileData.Type == TerrainType.Water)
+                    {
+                        validate = false;
+                    }
+
                     //  cannot move into tiles occupied by anything else
                     if (tile.TileData.Entities != null && tile.TileData.Entities.Length > 0)
                     {
@@ -80,7 +124,7 @@ public class GamePlayer : MonoBehaviour
                 }
                 else
                 {
-                    validate= false;
+                    validate = false;
                 }
 
                 if (validate)
@@ -90,14 +134,55 @@ public class GamePlayer : MonoBehaviour
             }
         }
 
-        foreach(GameTile tile in tiles)
+        List<GameTile> filteredTiles = FilterTilesByDistance(tiles, unit, unit.RemainingMovement);
+
+        if (filteredTiles.Count == 0)
+        {
+            return;
+        }
+
+        foreach (GameTile tile in filteredTiles)
         {
             tile.EnableHilightForMovement(OnGameTileMoveUnitEnterAction, OnGameTileMoveClickAction);
         }
 
         _activeMoveUnit = unit;
-        _activeMoveTiles = tiles;
+        _activeMoveTiles = filteredTiles;
         _isMovingUnit = true;
+        PlayerInterface.ToggleLock();
+    }
+
+    private List<GameTile> FilterTilesByDistance(List<GameTile> tiles, UnitData unit, int distance)
+    {
+        bool[,] tilesMap = new bool[(int)GameController.Instance.CurrentGameMatch.Map.MapSize.x, (int)GameController.Instance.CurrentGameMatch.Map.MapSize.y];
+        for(int x = 0; x < tilesMap.GetLength(0); x++)
+        {
+            for(int y = 0; y < tilesMap.GetLength(1); y++)
+            {
+                tilesMap[x, y] = false;
+            }
+        }
+
+        foreach (GameTile tile in tiles)
+        {
+            tilesMap[tile.TileData.X, tile.TileData.Y] = true;
+        }
+
+        List<GameTile> filteredTiles = new List<GameTile>();
+        foreach (GameTile tile in tiles)
+        {
+            NesScripts.Controls.PathFind.Grid grid = new NesScripts.Controls.PathFind.Grid(tilesMap);
+            Point from = new Point((int)unit.Location.x, (int)unit.Location.y);
+            Point to = new Point(tile.TileData.X, tile.TileData.Y);
+            List<Point> path = Pathfinding.FindPath(grid, from, to, Pathfinding.DistanceType.Manhattan);
+
+            if (path.Count <= distance && path.Count > 0)
+            {
+                filteredTiles.Add(tile);
+            }
+        }
+
+        return filteredTiles;
     }
 
     private void CancelMoveUnit()
@@ -116,14 +201,25 @@ public class GamePlayer : MonoBehaviour
         _activeMoveTiles = null;
         _isMovingUnit = false;
 
-        PlayerInterface.ToggleLock();
+        PlayerInterface.SetLock(false);
     }
 
+    /// <summary>
+    /// Called when mouse enters a tile that is active in a move command
+    /// </summary>
     private void OnGameTileMoveUnitEnterAction(GameTile sender)
     {
         List<GameTile> tiles = new List<GameTile>();
 
         bool[,] tilesMap = new bool[(int)GameController.Instance.CurrentGameMatch.Map.MapSize.x, (int)GameController.Instance.CurrentGameMatch.Map.MapSize.y];
+        for (int x = 0; x < tilesMap.GetLength(0); x++)
+        {
+            for (int y = 0; y < tilesMap.GetLength(1); y++)
+            {
+                tilesMap[x, y] = false;
+            }
+        }
+
         foreach (GameTile tile in _activeMoveTiles)
         {
             tilesMap[tile.TileData.X, tile.TileData.Y] = true;
@@ -145,6 +241,12 @@ public class GamePlayer : MonoBehaviour
             }
         }
 
+        if (_cachedPath.Count > _cachedMaxMoveDistance)
+        {
+            _cachedPath = new List<Point>();
+            tiles = new List<GameTile>();
+        }
+
         foreach (GameTile tile in _activeMoveTiles)
         {
             if (!tiles.Contains(tile))
@@ -158,9 +260,35 @@ public class GamePlayer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Confirms a unit movement command.
+    /// </summary>
     private void OnGameTileMoveClickAction(GameTile sender)
     {
-        GameController.Instance.CurrentGameMatch.Map.MoveEntity(_activeMoveUnit, _cachedPath);
+        if(_cachedPath != null && _cachedPath.Count > 0)
+        {
+            _activeMoveUnit.RemainingMovement -= _cachedPath.Count;
+            GameController.Instance.CurrentGameMatch.Map.MoveEntity(_activeMoveUnit, _cachedPath);
+        }
+
+        CancelMoveUnit();
+    }
+
+    private void OnGameTileUnitAttackEnterAction(GameTile sender)
+    {
+
+    }
+
+    private void OnGameTileUnitAttackClickAction(GameTile sender)
+    {
+        UnitData target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
+
+        if (target != null)
+        {
+            _activeMoveUnit.RemainingAttacks--;
+            target.RemainingHealth--;
+        }
+
         CancelMoveUnit();
     }
 
