@@ -31,13 +31,13 @@ public class GameTile : MonoBehaviour
         switch (data.Type)
         {
             case TerrainType.Field:
-                terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Terrain/TerrainGrass.mat");
+                terrainMaterial = Resources.Load<Material>("Terrain/TerrainGrass");
                 break;
             case TerrainType.Forest:
-                terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Terrain/TerrainForest.mat");
+                terrainMaterial = Resources.Load<Material>("Terrain/TerrainForest");
                 break;
             case TerrainType.Water:
-                terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Terrain/TerrainWater.mat");
+                terrainMaterial = Resources.Load<Material>("Terrain/TerrainWater");
                 break;
             default:
                 break;

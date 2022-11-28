@@ -20,7 +20,7 @@ public class GameMatch : MonoBehaviour
         Map = map;
         Players = players;
 
-        string mapToLoadPath = "Assets/Data/MapData/New/";
+        string mapToLoadPath = "Data/MapData/New/";
         string mapName = "New";
 
         Map.transform.parent = transform;

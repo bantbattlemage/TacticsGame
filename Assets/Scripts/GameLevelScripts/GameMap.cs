@@ -102,32 +102,17 @@ public class GameMap : MonoBehaviour
         finalTile.SpawnEntity(entity);
     }
 
-    public void LoadMap(string mapToLoadPath = "Assets/Data/MapData/New/", string mapName = "New")
+    public void LoadMap(string mapToLoadPath = "Data/MapData/New/", string mapName = "New")
     {
-        ClearLoadedMapCache();
-
-        AssetDatabase.CreateFolder("Assets/Cache", "LoadedLevel");
-
-        AssetDatabase.CreateFolder("Assets/Cache/LoadedLevel", "EntityData");
-        AssetDatabase.CreateFolder("Assets/Cache/LoadedLevel", "TileData");
-        AssetDatabase.CreateFolder("Assets/Cache/LoadedLevel", "PlayerData");
-
-        string fullMapPathOriginal = mapToLoadPath + mapName + ".asset";
-        string fullMapPathCopy = "Assets/Cache/LoadedLevel/" + mapName + ".asset";
-        AssetDatabase.CopyAsset(fullMapPathOriginal, fullMapPathCopy);
-        MapData activeMapData = AssetDatabase.LoadAssetAtPath<MapData>(fullMapPathCopy);
+        string fullMapPathOriginal = mapToLoadPath + mapName;
+        MapData activeMapData = Instantiate(Resources.Load<MapData>(fullMapPathOriginal));
         mapData = activeMapData;
-
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
 
         List<PlayerData> activePlayers = new List<PlayerData>();
         foreach (PlayerData playerData in activeMapData.MapPlayers)
         {
-            string originalPath = mapToLoadPath + "PlayerData/" + playerData.name + ".asset";
-            string path = "Assets/Cache/LoadedLevel/PlayerData/" + playerData.name + ".asset";
-            AssetDatabase.CopyAsset(originalPath, path);
-            PlayerData activePlayerData = AssetDatabase.LoadAssetAtPath<PlayerData>(path);
+            string originalPath = mapToLoadPath + "PlayerData/" + playerData.name;
+            PlayerData activePlayerData = Instantiate(Resources.Load<PlayerData>(originalPath));
             activePlayers.Add(activePlayerData);
         }
         activeMapData.MapPlayers = activePlayers.ToArray();
@@ -139,22 +124,18 @@ public class GameMap : MonoBehaviour
         GameObject root = new GameObject();
         root.name = "root";
         root.transform.parent = transform;
-        GameObject basicTile = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Tile.prefab");
+        GameObject basicTile = Resources.Load<GameObject>("Prefabs/Tile");
 
         foreach(TileData tileData in activeMapData.MapTiles)
         {
-            string originalPath = mapToLoadPath + "TileData/tile" + tileData.X + tileData.Y + ".asset";
-            string path = "Assets/Cache/LoadedLevel/TileData/tile" + tileData.X + tileData.Y + ".asset";
-            AssetDatabase.CopyAsset(originalPath, path);
-            TileData activeData = AssetDatabase.LoadAssetAtPath<TileData>(path);
+            string originalPath = mapToLoadPath + "TileData/tile" + tileData.X + tileData.Y;
+            TileData activeData = Instantiate(Resources.Load<TileData>(originalPath));
 
             List<GameEntityData> activeEntities = new List<GameEntityData>();
             foreach(GameEntityData entityData in activeData.Entities)
             {
-                originalPath = mapToLoadPath + "EntityData/" + entityData.name + ".asset";
-                path = "Assets/Cache/LoadedLevel/EntityData/tile" + entityData.name + ".asset";
-                AssetDatabase.CopyAsset(originalPath, path);
-                GameEntityData activeEntityData = AssetDatabase.LoadAssetAtPath<GameEntityData>(path);
+                originalPath = mapToLoadPath + "EntityData/" + entityData.name;
+                GameEntityData activeEntityData = Instantiate(Resources.Load<GameEntityData>(originalPath));
                 activeEntities.Add(activeEntityData);
             }
             activeData.Entities = activeEntities.ToArray();
@@ -174,28 +155,5 @@ public class GameMap : MonoBehaviour
             newlyInstantiatedTile.name = string.Format("{0},{1}", activeData.X, activeData.Y);
             activeTiles[activeData.X, activeData.Y] = tile;
         }
-
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-    }
-
-    public void ClearLoadedMapCache()
-    {
-        string[] pathsToDelete = new string[]
-        {
-            "Assets/Cache/LoadedLevel/",
-            "Assets/Cache/LoadedLevel/EntityData",
-            "Assets/Cache/LoadedLevel/TileData",
-            "Assets/Cache/LoadedLevel/PlayerData",
-        };
-
-        AssetDatabase.DeleteAssets(pathsToDelete, new List<string>());
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-    }
-
-    private void OnApplicationQuit()
-    {
-        ClearLoadedMapCache();
     }
 }

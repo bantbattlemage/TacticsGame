@@ -30,12 +30,12 @@ public class GameController : MonoBehaviour
     {
         ClearLoadedGameCache();
 
-        AssetDatabase.CreateFolder("Assets/Cache", "LoadedMatch");
+        //AssetDatabase.CreateFolder("Assets/Cache", "LoadedMatch");
         MatchData newMatchData = ScriptableObject.CreateInstance<MatchData>();
-        AssetDatabase.SaveAssets();
-        AssetDatabase.CreateAsset(newMatchData, "Assets/Cache/LoadedMatch/gameMatchData.asset");
+        //AssetDatabase.SaveAssets();
+        //AssetDatabase.CreateAsset(newMatchData, "Assets/Cache/LoadedMatch/gameMatchData.asset");
 
-        GameMatch newMatch = Instantiate(AssetDatabase.LoadAssetAtPath<GameMatch>("Assets/Prefabs/GameMatch.prefab"));
+        GameMatch newMatch = Instantiate(Resources.Load<GameMatch>("Prefabs/GameMatch"));
         newMatch.matchData = newMatchData;
         CurrentGameMatch = newMatch;
 
@@ -43,25 +43,25 @@ public class GameController : MonoBehaviour
 
         for(int i = 0; i < players.Length; i++)
         {
-            players[i] = Instantiate(AssetDatabase.LoadAssetAtPath<GamePlayer>("Assets/Prefabs/GamePlayer.prefab"));
+            players[i] = Instantiate(Resources.Load<GamePlayer>("Prefabs/GamePlayer"));
             players[i].transform.parent = newMatch.transform;
         }
 
-        newMatch.Initialize(Instantiate(AssetDatabase.LoadAssetAtPath<GameMap>("Assets/Prefabs/GameMap.prefab")), players);
+        newMatch.Initialize(Instantiate(Resources.Load<GameMap>("Prefabs/GameMap")), players);
 
         return newMatch;
     }
 
     public void ClearLoadedGameCache()
     {
-        string[] pathsToDelete = new string[]
-        {
-            "Assets/Cache/LoadedMatch/"
-        };
+        //string[] pathsToDelete = new string[]
+        //{
+        //    "Assets/Cache/LoadedMatch/"
+        //};
 
-        AssetDatabase.DeleteAssets(pathsToDelete, new List<string>());
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
+        //AssetDatabase.DeleteAssets(pathsToDelete, new List<string>());
+        //AssetDatabase.SaveAssets();
+        //AssetDatabase.Refresh();
     }
 
     private void OnApplicationQuit()

@@ -22,16 +22,16 @@ public class GameEntity : MonoBehaviour
         switch(Data.Owner)
         {
             case 0:
-                material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/Player1Material.mat");
+                material = Resources.Load<Material>("Materials/Player1Material");
                 break;
             case 1:
-                material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/Player2Material.mat");
+                material = Resources.Load<Material>("Materials/Player2Material");
                 break;
             case 2:
-                material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/Player3Material.mat");
+                material = Resources.Load<Material>("Materials/Player3Material");
                 break; 
             case 3:
-                material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/Player4Material.mat");
+                material = Resources.Load<Material>("Materials/Player4Material");
                 break;
             default:
                 break;
