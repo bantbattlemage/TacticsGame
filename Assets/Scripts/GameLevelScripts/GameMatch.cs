@@ -15,6 +15,11 @@ public class GameMatch : MonoBehaviour
         return Players[matchData.CurrentActivePlayer];
     }
 
+    public GamePlayer GetPlayer(int id)
+    {
+        return Players.First(x => x.GamePlayerData.ID == id);
+    }
+
     public void Initialize(GameMap map, GamePlayer[] players)
     {
         Map = map;

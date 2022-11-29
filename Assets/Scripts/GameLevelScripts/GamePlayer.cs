@@ -11,6 +11,7 @@ public class GamePlayer : MonoBehaviour
     public GameCamera PlayerCamera;
     public PlayerUI PlayerInterface;
 
+    public bool IsMovingUnit { get { return _isMovingUnit; } }
     private bool _isMovingUnit = false;
     private int _cachedMaxMoveDistance = 0;
     private UnitData _activeSelectedUnit = null;
@@ -149,26 +150,32 @@ public class GamePlayer : MonoBehaviour
         _activeSelectedUnit = unit;
         _activeMoveTiles = filteredTiles;
         _isMovingUnit = true;
-        PlayerInterface.ToggleLock();
+        PlayerInterface.SetLock(true);
     }
 
-    private void CancelMoveUnit()
+    private void CancelMoveUnit(bool resetLock = true)
     {
         if(!_isMovingUnit)
         {
             return;
         }
 
-        foreach (GameTile tile in _activeMoveTiles)
+        if(_activeMoveTiles != null)
         {
-            tile.DisableHilightForMovement();
+            foreach (GameTile tile in _activeMoveTiles)
+            {
+                tile.DisableHilightForMovement();
+            }
         }
 
         _activeSelectedUnit = null;
         _activeMoveTiles = null;
-        _isMovingUnit = false;
 
-        PlayerInterface.SetLock(false);
+        if(resetLock)
+        {
+            _isMovingUnit = false;
+            PlayerInterface.SetLock(false);
+        }
     }
 
     /// <summary>
@@ -238,6 +245,9 @@ public class GamePlayer : MonoBehaviour
                 {
                     GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
                 }
+
+                _isMovingUnit = false;
+                PlayerInterface.SetLock(false);
             }, 
             () => 
             {
@@ -245,10 +255,13 @@ public class GamePlayer : MonoBehaviour
                 {
                     GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
                 }
+
+                _isMovingUnit = false;
+                PlayerInterface.SetLock(false);
             });
         }
 
-        CancelMoveUnit();
+        CancelMoveUnit(false);
     }
 
     public void BeginUnitAttack(UnitData unit)
@@ -310,7 +323,7 @@ public class GamePlayer : MonoBehaviour
         _activeSelectedUnit = unit;
         _activeMoveTiles = filteredTiles;
         _isMovingUnit = true;
-        PlayerInterface.ToggleLock();
+        PlayerInterface.SetLock(true);
     }
 
     private void OnGameTileUnitAttackEnterAction(GameTile sender)
@@ -373,15 +386,13 @@ public class GamePlayer : MonoBehaviour
         {
             UnitData target = null;
 
-            if(sender.TileData.Entities.Length > 0)
+            if (sender.TileData.Entities.Length > 0)
             {
                 target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
             }
 
             if (target != null)
             {
-                PlayerInterface.SetLock(true);
-
                 foreach (Point p in _cachedPath)
                 {
                     GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).LockTile();
@@ -389,6 +400,10 @@ public class GamePlayer : MonoBehaviour
 
                 UnitData newUnitReference = _activeSelectedUnit;
                 List<Point> newPoints = new List<Point>(_cachedPath);
+
+                PlayerInterface.SetLock(false);
+                PlayerInterface.Tooltip.UpdateTooltip(target);
+                PlayerInterface.SetLock(true);
 
                 PlayerInterface.ConfirmBox.EnableConfirmationBox(() =>
                 {
@@ -399,6 +414,9 @@ public class GamePlayer : MonoBehaviour
                     {
                         GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
                     }
+
+                    PlayerInterface.SetLock(false);
+                    _isMovingUnit = false;
                 },
                 () =>
                 {
@@ -406,11 +424,22 @@ public class GamePlayer : MonoBehaviour
                     {
                         GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
                     }
+
+                    PlayerInterface.SetLock(false);
+                    _isMovingUnit = false;
                 });
+
+                CancelMoveUnit(false);
+            }
+            else
+            {
+                CancelMoveUnit();
             }
         }
-
-        CancelMoveUnit();
+        else
+        {
+            CancelMoveUnit();
+        }
     }
 
     private void EndTurn()

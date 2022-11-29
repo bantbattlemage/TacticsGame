@@ -23,12 +23,14 @@ public class PlayerUI : MonoBehaviour
     private string _playerName;
     private RaycastHit _cachedMouseOver;
     private bool _lockMouseOver = false;
+    private int _playerId;
 
     public delegate void ButtonPressedEvent();
     public ButtonPressedEvent EndTurnButtonPressed;
 
     public void Initialize(GamePlayer player)
     {
+        _playerId = player.GamePlayerData.ID;
         _playerName = player.GamePlayerData.Name;
         PlayerGameCamera = player.PlayerCamera.GetComponent<Camera>();
         PlayerName.text = _playerName;
@@ -52,17 +54,7 @@ public class PlayerUI : MonoBehaviour
 
         if (!_lockMouseOver)
         {
-            Tooltip.Deselect();
-        }
-    }
-
-    public void ToggleLock()
-    {
-        _lockMouseOver = !_lockMouseOver;
-
-        if(!_lockMouseOver)
-        {
-            Tooltip.Deselect();
+            DeselectEntity();
         }
     }
 
@@ -71,16 +63,40 @@ public class PlayerUI : MonoBehaviour
         _lockMouseOver = false;
         ProcessTooltip();
         Tooltip.Select(entityReference.DataSource);
+        EndTurnButton.gameObject.SetActive(false);
         _lockMouseOver = true;
+    }
+
+    private void DeselectEntity()
+    {
+        Tooltip.Deselect();
+
+        if(!GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsMovingUnit)
+        {
+            EndTurnButton.gameObject.SetActive(true);
+        }
     }
 
     private void ProcessMouseClick()
     {
-        if(IsOverInterface() || _lockMouseOver)
+        if(IsMouseOverInterface() || _lockMouseOver)
         {
-            return;
-        }
+            if (!IsMouseOverInterface() && _lockMouseOver && !GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsMovingUnit && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
+            {
+                _lockMouseOver = false;
+                DeselectEntity();
 
+                if (Input.GetMouseButtonDown(1))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+        
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
@@ -93,17 +109,6 @@ public class PlayerUI : MonoBehaviour
                     SelectEntity(toolTip);
                 }
             }
-            else if(_lockMouseOver)
-            {
-                _lockMouseOver = false;
-                Tooltip.Deselect();
-            }
-        }
-
-        if(Input.GetMouseButtonDown(1))
-        {
-            _lockMouseOver = false;
-            Tooltip.Deselect();
         }
     }
 
@@ -127,7 +132,7 @@ public class PlayerUI : MonoBehaviour
         }
     }
 
-    private bool IsOverInterface()
+    private bool IsMouseOverInterface()
     {
         PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
         eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
