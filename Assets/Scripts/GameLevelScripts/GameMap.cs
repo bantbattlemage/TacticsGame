@@ -35,6 +35,28 @@ public class GameMap : MonoBehaviour
         }
     }
 
+    public List<Point> FindPath(Point from, Point to, List<GameTile> tiles)
+    {
+        bool[,] tilesMap = new bool[(int)MapSize.x, (int)MapSize.y];
+        for (int x = 0; x < tilesMap.GetLength(0); x++)
+        {
+            for (int y = 0; y < tilesMap.GetLength(1); y++)
+            {
+                tilesMap[x, y] = false;
+            }
+        }
+
+        foreach (GameTile tile in tiles)
+        {
+            tilesMap[tile.TileData.X, tile.TileData.Y] = true;
+        }
+
+        NesScripts.Controls.PathFind.Grid grid = new NesScripts.Controls.PathFind.Grid(tilesMap);
+        List<Point> path = Pathfinding.FindPath(grid, from, to, Pathfinding.DistanceType.Manhattan);
+
+        return path;
+    }
+
     /// <summary>
     /// Returns all tiles within 'walking' distance of the startPoint.
     /// </summary>

@@ -13,5 +13,8 @@ MonoBehaviour:
   m_Name: CommanderUnitDefinition
   m_EditorClassIdentifier: 
   Prefab: {fileID: 5370306762599958970, guid: d78cd5936ee233a47a10697aeeae38e9, type: 3}
+  UnitType: 0
   BaseHealth: 10
   BaseMovement: 3
+  BaseAttackRange: 2
+  BaseNumberOfAttacks: 1

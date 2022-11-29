@@ -13,7 +13,7 @@ public class GamePlayer : MonoBehaviour
 
     private bool _isMovingUnit = false;
     private int _cachedMaxMoveDistance = 0;
-    private UnitData _activeMoveUnit = null;
+    private UnitData _activeSelectedUnit = null;
     private List<GameTile> _activeMoveTiles = new List<GameTile>();
     private List<Point> _cachedPath = new List<Point>();
 
@@ -74,11 +74,6 @@ public class GamePlayer : MonoBehaviour
                     break;
             }
         }
-    }
-
-    public void BeginUnitAttack(UnitData unit)
-    {
- 
     }
 
     public void BeginMoveUnit(UnitData unit)
@@ -146,7 +141,7 @@ public class GamePlayer : MonoBehaviour
             tile.EnableHilightForMovement(OnGameTileMoveUnitEnterAction, OnGameTileMoveClickAction);
         }
 
-        _activeMoveUnit = unit;
+        _activeSelectedUnit = unit;
         _activeMoveTiles = filteredTiles;
         _isMovingUnit = true;
         PlayerInterface.ToggleLock();
@@ -164,7 +159,7 @@ public class GamePlayer : MonoBehaviour
             tile.DisableHilightForMovement();
         }
 
-        _activeMoveUnit = null;
+        _activeSelectedUnit = null;
         _activeMoveTiles = null;
         _isMovingUnit = false;
 
@@ -178,27 +173,12 @@ public class GamePlayer : MonoBehaviour
     {
         List<GameTile> tiles = new List<GameTile>();
 
-        bool[,] tilesMap = new bool[(int)GameController.Instance.CurrentGameMatch.Map.MapSize.x, (int)GameController.Instance.CurrentGameMatch.Map.MapSize.y];
-        for (int x = 0; x < tilesMap.GetLength(0); x++)
-        {
-            for (int y = 0; y < tilesMap.GetLength(1); y++)
-            {
-                tilesMap[x, y] = false;
-            }
-        }
+        Point from = new Point(_activeSelectedUnit.Location.x, _activeSelectedUnit.Location.y);
+        Point to = new Point(sender.TileData.X, sender.TileData.Y);
+      
+        _cachedPath = GameController.Instance.CurrentGameMatch.Map.FindPath(from, to, _activeMoveTiles);
 
-        foreach (GameTile tile in _activeMoveTiles)
-        {
-            tilesMap[tile.TileData.X, tile.TileData.Y] = true;
-        }
-
-        NesScripts.Controls.PathFind.Grid grid = new NesScripts.Controls.PathFind.Grid(tilesMap);
-        Point from = new Point((int)_activeMoveUnit.Location.x, (int)_activeMoveUnit.Location.y);
-        Point to = new Point(sender.TileData.X, sender.TileData.Y); 
-        List<Point> path = Pathfinding.FindPath(grid, from, to, Pathfinding.DistanceType.Manhattan);
-        _cachedPath = path;
-
-        foreach(Point p in path)
+        foreach (Point p in _cachedPath)
         {
             GameTile t = GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y);
 
@@ -241,7 +221,7 @@ public class GamePlayer : MonoBehaviour
                 GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).LockTile();
             }
 
-            UnitData newUnitReference = _activeMoveUnit;
+            UnitData newUnitReference = _activeSelectedUnit;
             List<Point> newPoints = new List<Point>(_cachedPath);
 
             PlayerInterface.ConfirmBox.EnableConfirmationBox(() => 
@@ -266,19 +246,153 @@ public class GamePlayer : MonoBehaviour
         CancelMoveUnit();
     }
 
+    public void BeginUnitAttack(UnitData unit)
+    {
+        List<GameTile> tiles = new List<GameTile>();
+        int range = unit.BaseAttackRange;
+        _cachedMaxMoveDistance = range;
+
+        if (range <= 0)
+        {
+            return;
+        }
+
+        for (int x = -range; x <= range; x++)
+        {
+            for (int y = -range; y <= range; y++)
+            {
+                Point target = new Point(unit.Location.x + x, unit.Location.y + y);
+
+                //  ignore tile already on
+                if (target.x == unit.Location.x && target.y == unit.Location.y)
+                {
+                    continue;
+                }
+
+                GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile(target.x, target.y);
+
+                bool validate = false;
+
+                if (tile != null)
+                {
+                    validate = true;
+                }
+
+                if (validate)
+                {
+                    tiles.Add(tile);
+                }
+            }
+        }
+
+        List<GameTile> filteredTiles = GameMap.FilterTilesByDistance(tiles, unit.Location, range);
+
+        if (filteredTiles.Count == 0)
+        {
+            return;
+        }
+
+        foreach (GameTile tile in filteredTiles)
+        {
+            tile.EnableHilightForMovement(OnGameTileUnitAttackEnterAction, OnGameTileUnitAttackClickAction);
+        }
+
+        _activeSelectedUnit = unit;
+        _activeMoveTiles = filteredTiles;
+        _isMovingUnit = true;
+        PlayerInterface.ToggleLock();
+    }
+
     private void OnGameTileUnitAttackEnterAction(GameTile sender)
     {
+        List<GameTile> tiles = new List<GameTile>();
 
+        Point from = new Point(_activeSelectedUnit.Location.x, _activeSelectedUnit.Location.y);
+        Point to = new Point(sender.TileData.X, sender.TileData.Y);
+
+        _cachedPath = GameController.Instance.CurrentGameMatch.Map.FindPath(from, to, _activeMoveTiles);
+
+        foreach (Point p in _cachedPath)
+        {
+            GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y);
+
+            if (tile != null)
+            {
+                bool validate = false;
+
+                if (tile != null)
+                {
+                    if (tile.TileData.Entities != null && tile.TileData.Entities.Length > 0)
+                    {
+                        if (tile.TileData.Entities.Any(x => x.Owner != GamePlayerData.ID))
+                        {
+                            validate = true;
+                        }
+                    }
+                }
+
+                if (validate)
+                {
+                    tiles.Add(tile);
+                }
+            }
+        }
+
+        if (_cachedPath.Count > _cachedMaxMoveDistance)
+        {
+            _cachedPath = new List<Point>();
+            tiles = new List<GameTile>();
+        }
+
+        foreach (GameTile tile in _activeMoveTiles)
+        {
+            if (!tiles.Contains(tile))
+            {
+                tile.HilightRed();
+            }
+            else
+            {
+                tile.HilightGreen();
+            }
+        }
     }
 
     private void OnGameTileUnitAttackClickAction(GameTile sender)
     {
-        UnitData target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
-
-        if (target != null)
+        if (_cachedPath != null && _cachedPath.Count > 0)
         {
-            _activeMoveUnit.RemainingAttacks--;
-            target.RemainingHealth--;
+            UnitData target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
+
+            if (target != null)
+            {
+                PlayerInterface.SetLock(true);
+
+                foreach (Point p in _cachedPath)
+                {
+                    GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).LockTile();
+                }
+
+                UnitData newUnitReference = _activeSelectedUnit;
+                List<Point> newPoints = new List<Point>(_cachedPath);
+
+                PlayerInterface.ConfirmBox.EnableConfirmationBox(() =>
+                {
+                    newUnitReference.RemainingAttacks--;
+                    target.RemainingHealth--;
+
+                    foreach (Point p in newPoints)
+                    {
+                        GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+                    }
+                },
+                () =>
+                {
+                    foreach (Point p in newPoints)
+                    {
+                        GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+                    }
+                });
+            }
         }
 
         CancelMoveUnit();
