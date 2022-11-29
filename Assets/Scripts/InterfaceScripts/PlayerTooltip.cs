@@ -16,6 +16,8 @@ public class PlayerTooltip : MonoBehaviour
 
     private int _playerID;
 
+    private bool _lockMouseOver;
+
     private void Awake()
     {
         DisableButtons();
@@ -24,6 +26,11 @@ public class PlayerTooltip : MonoBehaviour
     public void Initialize(GamePlayer player)
     {
         _playerID = player.GamePlayerData.ID;
+    }
+
+    public void LockMouseOver(bool setLock = true)
+    {
+        _lockMouseOver = setLock;
     }
 
     private void DisableButtons()
@@ -41,6 +48,11 @@ public class PlayerTooltip : MonoBehaviour
 
     public void UpdateTooltip(GameData data)
     {
+        if (_lockMouseOver)
+        {
+            return;
+        }
+
         string title = "";
         string content = "";
 
@@ -87,6 +99,11 @@ public class PlayerTooltip : MonoBehaviour
 
     public void Select(GameData data)
     {
+        if (_lockMouseOver)
+        {
+            return;
+        }
+
         DisableButtons();
 
         switch (data.DataType)
@@ -123,6 +140,11 @@ public class PlayerTooltip : MonoBehaviour
 
     public void Deselect()
     {
+        if (_lockMouseOver)
+        {
+            return;
+        }
+
         DisableButtons();
     }
 }

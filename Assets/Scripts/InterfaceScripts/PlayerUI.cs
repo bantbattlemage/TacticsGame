@@ -10,6 +10,7 @@ public class PlayerUI : MonoBehaviour
 {
     public Camera PlayerUiCamera;
     public PlayerTooltip Tooltip;
+    public PlayerTooltip TargetTooltip;
     public ConfirmationBox ConfirmBox;
 
     [HideInInspector]
@@ -35,6 +36,8 @@ public class PlayerUI : MonoBehaviour
         PlayerGameCamera = player.PlayerCamera.GetComponent<Camera>();
         PlayerName.text = _playerName;
         Tooltip.Initialize(player);
+        TargetTooltip.Initialize(player);
+        TargetTooltip.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -45,7 +48,9 @@ public class PlayerUI : MonoBehaviour
         }
 
         ProcessTooltip();
+        ProcessTargetTooltip();
         ProcessMouseClick();
+        //ProcessTargetTooltipMouseClick();
     }
 
     public void SetLock(bool set)
@@ -55,6 +60,10 @@ public class PlayerUI : MonoBehaviour
         if (!_lockMouseOver)
         {
             DeselectEntity();
+        }
+        else if(TargetTooltip.gameObject.activeInHierarchy)
+        {
+            TargetTooltip.LockMouseOver();
         }
     }
 
@@ -67,6 +76,20 @@ public class PlayerUI : MonoBehaviour
         _lockMouseOver = true;
     }
 
+    private void SelectEntityForTargetTooltip(ObjectTooltip entityReference)
+    {
+        if (!TargetTooltip.gameObject.activeInHierarchy)
+        {
+            return;
+        }
+
+        _lockMouseOver = false;
+        ProcessTooltip();
+        TargetTooltip.Select(entityReference.DataSource);
+        EndTurnButton.gameObject.SetActive(false);
+        _lockMouseOver = true;
+    }
+
     private void DeselectEntity()
     {
         Tooltip.Deselect();
@@ -74,6 +97,8 @@ public class PlayerUI : MonoBehaviour
         if(!GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsMovingUnit)
         {
             EndTurnButton.gameObject.SetActive(true);
+            TargetTooltip.LockMouseOver(false);
+            TargetTooltip.gameObject.SetActive(false);
         }
     }
 
@@ -112,6 +137,28 @@ public class PlayerUI : MonoBehaviour
         }
     }
 
+    private void ProcessTargetTooltipMouseClick()
+    {
+        if (IsMouseOverInterface() || !TargetTooltip.gameObject.activeInHierarchy)
+        {
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            Ray rayOrigin = PlayerGameCamera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(rayOrigin, out hit))
+            {
+                ObjectTooltip toolTip = hit.transform.gameObject.GetComponent<ObjectTooltip>();
+                if (toolTip != null && toolTip.DataSource.DataType == GameDataType.Entity)
+                {
+                    SelectEntityForTargetTooltip(toolTip);
+                }
+            }
+        }
+    }
+
     private void ProcessTooltip()
     {
         if(_lockMouseOver)
@@ -128,6 +175,31 @@ public class PlayerUI : MonoBehaviour
             if (toolTip != null)
             {
                 Tooltip.UpdateTooltip(toolTip.DataSource);
+            }
+        }
+    }
+
+    public void EnableTargetTooltip(bool enable = true)
+    {
+        TargetTooltip.gameObject.SetActive(enable);
+    }
+
+    private void ProcessTargetTooltip()
+    {
+        if (!TargetTooltip.gameObject.activeInHierarchy)
+        {
+            return;
+        }
+
+        RaycastHit hit;
+        Ray rayOrigin = PlayerGameCamera.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(rayOrigin, out hit) && _cachedMouseOver.transform != hit.transform)
+        {
+            _cachedMouseOver = hit;
+            ObjectTooltip toolTip = hit.transform.gameObject.GetComponent<ObjectTooltip>();
+            if (toolTip != null)
+            {
+                TargetTooltip.UpdateTooltip(toolTip.DataSource);
             }
         }
     }

@@ -5,14 +5,23 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+public enum GamePlayerState
+{
+    Idle_ActivePlayer,
+    Idle_InactivePlayer,
+    UnitMoveAction,
+    UnitAttackAction
+}
+
 public class GamePlayer : MonoBehaviour
 {
     public PlayerData GamePlayerData;
     public GameCamera PlayerCamera;
     public PlayerUI PlayerInterface;
 
-    public bool IsMovingUnit { get { return _isMovingUnit; } }
-    private bool _isMovingUnit = false;
+    public GamePlayerState State { get; private set; }
+
+    public bool IsMovingUnit { get { return State == GamePlayerState.UnitMoveAction || State == GamePlayerState.UnitAttackAction; } }
     private int _cachedMaxMoveDistance = 0;
     private UnitData _activeSelectedUnit = null;
     private List<GameTile> _activeMoveTiles = new List<GameTile>();
@@ -28,17 +37,28 @@ public class GamePlayer : MonoBehaviour
         PlayerCamera.GetComponent<Camera>().depth = data.ID;
         PlayerInterface.Initialize(this);
         PlayerInterface.EndTurnButtonPressed += EndTurn;
+        SetState(GamePlayerState.Idle_InactivePlayer);
     }
 
     private void Update()
     {
         //  right click cancel
-        if(_isMovingUnit && Input.GetMouseButtonDown(1))
+        if(IsMovingUnit && Input.GetMouseButtonDown(1))
         {
             CancelMoveUnit();
         }
     }
 
+    public void SetState(GamePlayerState state)
+    {
+        State = state;
+    }
+
+    #region Player Turn Actions
+
+    /// <summary>
+    /// Begins the players turn.
+    /// </summary>
     public void BeginTurn(int roundNumber)
     {
         CancelMoveUnit();
@@ -52,6 +72,18 @@ public class GamePlayer : MonoBehaviour
         {
             PlayerCamera.PanTo(hqTile.transform);
         }
+
+        SetState(GamePlayerState.Idle_ActivePlayer);
+    }
+
+    /// <summary>
+    /// Ends the players turn.
+    /// </summary>
+    private void EndTurn()
+    {
+        CancelMoveUnit();
+        SetState(GamePlayerState.Idle_InactivePlayer);
+        RequestEndTurn(this);
     }
 
     /// <summary>
@@ -76,10 +108,15 @@ public class GamePlayer : MonoBehaviour
             }
         }
     }
+    #endregion
 
+    #region Unit Move Action
+    /// <summary>
+    /// Enter a Player Move Unit Action state
+    /// </summary>
     public void BeginMoveUnit(UnitData unit)
     {
-        if (_isMovingUnit)
+        if (IsMovingUnit)
         {
             return;
         }
@@ -149,13 +186,17 @@ public class GamePlayer : MonoBehaviour
 
         _activeSelectedUnit = unit;
         _activeMoveTiles = filteredTiles;
-        _isMovingUnit = true;
+        SetState(GamePlayerState.UnitMoveAction);
         PlayerInterface.SetLock(true);
+        PlayerInterface.EnableTargetTooltip();
     }
 
-    private void CancelMoveUnit(bool resetLock = true)
+    /// <summary>
+    /// Clears the Move Unit State related variables. fullReset=true will exit the Move Unit state. false to just clear variables 
+    /// </summary>
+    private void CancelMoveUnit(bool fullReset = true)
     {
-        if(!_isMovingUnit)
+        if(!IsMovingUnit)
         {
             return;
         }
@@ -171,10 +212,11 @@ public class GamePlayer : MonoBehaviour
         _activeSelectedUnit = null;
         _activeMoveTiles = null;
 
-        if(resetLock)
+        if(fullReset)
         {
-            _isMovingUnit = false;
+            SetState(GamePlayerState.Idle_ActivePlayer);
             PlayerInterface.SetLock(false);
+            PlayerInterface.EnableTargetTooltip(false);
         }
     }
 
@@ -220,7 +262,7 @@ public class GamePlayer : MonoBehaviour
     }
 
     /// <summary>
-    /// Confirms a unit movement command.
+    /// Confirms a unit movement command
     /// </summary>
     private void OnGameTileMoveClickAction(GameTile sender)
     {
@@ -246,8 +288,9 @@ public class GamePlayer : MonoBehaviour
                     GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
                 }
 
-                _isMovingUnit = false;
+                SetState(GamePlayerState.Idle_ActivePlayer);
                 PlayerInterface.SetLock(false);
+                PlayerInterface.EnableTargetTooltip(false);
             }, 
             () => 
             {
@@ -256,17 +299,23 @@ public class GamePlayer : MonoBehaviour
                     GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
                 }
 
-                _isMovingUnit = false;
+                SetState(GamePlayerState.Idle_ActivePlayer);
                 PlayerInterface.SetLock(false);
+                PlayerInterface.EnableTargetTooltip(false);
             });
         }
 
         CancelMoveUnit(false);
     }
+    #endregion
 
+    #region Unit Attack Action
+    /// <summary>
+    /// Enter a Player Unit Attack Atack state
+    /// </summary>
     public void BeginUnitAttack(UnitData unit)
     {
-        if(_isMovingUnit)
+        if(IsMovingUnit)
         {
             return;
         }
@@ -322,10 +371,14 @@ public class GamePlayer : MonoBehaviour
 
         _activeSelectedUnit = unit;
         _activeMoveTiles = filteredTiles;
-        _isMovingUnit = true;
+        SetState(GamePlayerState.UnitAttackAction);
         PlayerInterface.SetLock(true);
+        PlayerInterface.EnableTargetTooltip();
     }
 
+    /// <summary>
+    /// Called when mouse enters a tile that is active in an attack command
+    /// </summary>
     private void OnGameTileUnitAttackEnterAction(GameTile sender)
     {
         List<GameTile> tiles = new List<GameTile>();
@@ -380,6 +433,9 @@ public class GamePlayer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Confirms a unit attack command
+    /// </summary>
     private void OnGameTileUnitAttackClickAction(GameTile sender)
     {
         if (_cachedPath != null && _cachedPath.Count > 0)
@@ -388,7 +444,15 @@ public class GamePlayer : MonoBehaviour
 
             if (sender.TileData.Entities.Length > 0)
             {
-                target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
+                try
+                {
+                    target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
+                }
+                catch(Exception ex)
+                {
+                    Debug.LogWarning(ex);
+                    return;
+                }
             }
 
             if (target != null)
@@ -416,7 +480,8 @@ public class GamePlayer : MonoBehaviour
                     }
 
                     PlayerInterface.SetLock(false);
-                    _isMovingUnit = false;
+                    PlayerInterface.EnableTargetTooltip(false);
+                    SetState(GamePlayerState.Idle_ActivePlayer);
                 },
                 () =>
                 {
@@ -426,7 +491,8 @@ public class GamePlayer : MonoBehaviour
                     }
 
                     PlayerInterface.SetLock(false);
-                    _isMovingUnit = false;
+                    PlayerInterface.EnableTargetTooltip(false);
+                    SetState(GamePlayerState.Idle_ActivePlayer);
                 });
 
                 CancelMoveUnit(false);
@@ -441,10 +507,5 @@ public class GamePlayer : MonoBehaviour
             CancelMoveUnit();
         }
     }
-
-    private void EndTurn()
-    {
-        CancelMoveUnit();
-        RequestEndTurn(this);
-    }
+    #endregion
 }
