@@ -71,16 +71,15 @@ public class PlayerTooltip : MonoBehaviour
 				{
 					case GameEntityType.Unit:
 						UnitData unitData = data as UnitData;
-						UnitDefinition unitDefinition = (UnitDefinition)unitData.Definition;
-						content = unitDefinition.UnitType.ToString();
+						content = unitData.TypedDefinition.UnitType.ToString();
 						content += "\nOwner PlayerID: " + unitData.Owner.ToString();
-						content += string.Format("\nMovement: {0}/{1}", unitData.RemainingMovement, unitDefinition.BaseMovement);
-						content += string.Format("\nAttacks: {0}/{1}", unitData.RemainingAttacks, unitDefinition.BaseNumberOfAttacks);
-						content += string.Format("\nHealth: {0}/{1}", unitData.RemainingHealth, unitDefinition.BaseHealth);
+						content += string.Format("\nMovement: {0}/{1}", unitData.RemainingMovement, unitData.TypedDefinition.BaseMovement);
+						content += string.Format("\nAttacks: {0}/{1}", unitData.RemainingAttacks, unitData.TypedDefinition.BaseNumberOfAttacks);
+						content += string.Format("\nHealth: {0}/{1}", unitData.RemainingHealth, unitData.TypedDefinition.BaseHealth);
 						break;
 					case GameEntityType.Building:
 						BuildingData buildingData = data as BuildingData;
-						content = ((BuildingDefinition)buildingData.Definition).BuildingType.ToString();
+						content = buildingData.TypedDefinition.BuildingType.ToString();
 						content += "\nOwner PlayerID: " + buildingData.Owner.ToString();
 						break;
 					default:

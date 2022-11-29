@@ -10,6 +10,7 @@ public class UnitDefinition : GameDefinition
 	public int BaseMovement = 3;
 	public int BaseAttackRange = 1;
 	public int BaseNumberOfAttacks = 1;
+	public int BaseAttackDamage = 4;
 
 	public override GameDataType DataType => GameDataType.Entity;
 	public override GameEntityType EntityType => GameEntityType.Unit;

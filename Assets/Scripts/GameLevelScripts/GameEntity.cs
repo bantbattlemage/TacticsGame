@@ -16,7 +16,7 @@ public class GameEntity : MonoBehaviour
 		SetPlayerColor();
 	}
 
-	public void SetPlayerColor()
+	public virtual void SetPlayerColor()
 	{
 		Material material = null;
 
@@ -43,5 +43,13 @@ public class GameEntity : MonoBehaviour
 		{
 			x.material = material;
 		});
+	}
+
+	/// <summary>
+	/// Reset any entity values that are to be reset at the beginning of a player's turn.
+	/// </summary>
+	public virtual void RefreshEntity()
+	{
+
 	}
 }

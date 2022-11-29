@@ -7,14 +7,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using static UnityEngine.GraphicsBuffer;
 
-public enum GamePlayerState
-{
-	Idle_ActivePlayer,
-	Idle_InactivePlayer,
-	UnitMoveAction,
-	UnitAttackAction
-}
-
 public class GamePlayer : MonoBehaviour
 {
 	public static int NEUTRAL_PLAYER_ID { get { return -1; } }
@@ -23,7 +15,7 @@ public class GamePlayer : MonoBehaviour
 	public GameCamera PlayerCamera;
 	public PlayerUI PlayerInterface;
 
-	public GamePlayerState State { get; private set; }
+	public GamePlayerState State { get { return GamePlayerData.State; } }
 	public bool IsUsingUnitAction { get { return State == GamePlayerState.UnitMoveAction || State == GamePlayerState.UnitAttackAction; } }
 
 	private int _cachedMaxMoveDistance = 0;
@@ -41,6 +33,7 @@ public class GamePlayer : MonoBehaviour
 		PlayerCamera.GetComponent<Camera>().depth = data.ID;
 		PlayerInterface.Initialize(this);
 		PlayerInterface.EndTurnButtonPressed += EndTurn;
+		InitializePlayerEntities();
 		SetState(GamePlayerState.Idle_InactivePlayer);
 	}
 
@@ -55,16 +48,55 @@ public class GamePlayer : MonoBehaviour
 
 	public void SetState(GamePlayerState state)
 	{
-		State = state;
+		GamePlayerData.State = state;
 
 		PlayerInterface.EndTurnButton.gameObject.SetActive(state == GamePlayerState.Idle_ActivePlayer);
 		if(state == GamePlayerState.Idle_ActivePlayer)
 		{
 			PlayerInterface.SetLock(false);
 		}
+		else if(state == GamePlayerState.Idle_InactivePlayer)
+		{
+			List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID);
+
+			foreach(GameEntity entity in entities)
+			{
+				switch (entity.Data.Definition.EntityType)
+				{
+					case GameEntityType.Unit:
+						(entity as GameEntityUnit).SetState(UnitState.InactivePlayerControlled);
+						break;
+					case GameEntityType.Building:
+						break;
+				}
+			}
+		}
 	}
 
 	#region Player Turn Actions
+	/// <summary>
+	/// Set all player entities properties to default values.
+	/// </summary>
+	public void InitializePlayerEntities()
+	{
+		List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID);
+
+		foreach (GameEntity entity in entities)
+		{
+			switch (entity.Data.Definition.EntityType)
+			{
+				case GameEntityType.Unit:
+					UnitData unitData = entity.Data as UnitData;
+					unitData.RemainingHealth = unitData.TypedDefinition.BaseHealth;
+					break;
+				case GameEntityType.Building:
+					BuildingData buildingData = entity.Data as BuildingData;
+					break;
+			}
+
+			entity.RefreshEntity();
+		}
+	}
 
 	/// <summary>
 	/// Begins the players turn.
@@ -105,17 +137,7 @@ public class GamePlayer : MonoBehaviour
 
 		foreach (GameEntity entity in entities)
 		{
-			switch (entity.Data.Definition.EntityType)
-			{
-				case GameEntityType.Unit:
-					UnitData unitData = entity.Data as UnitData;
-					UnitDefinition unitDefinition = unitData.Definition as UnitDefinition;
-					unitData.RemainingMovement = unitDefinition.BaseMovement;
-					unitData.RemainingAttacks = unitDefinition.BaseNumberOfAttacks;
-					break;
-				case GameEntityType.Building:
-					break;
-			}
+			entity.RefreshEntity();
 		}
 	}
 	#endregion
@@ -306,8 +328,8 @@ public class GamePlayer : MonoBehaviour
 				//	capture
 				buttonActions[0] = () => 
 				{
-					PerformUnitMoveAction(newUnitReference, newPoints);
-					PerformUnitBuildingCaptureAction(newUnitReference, entities[0] as BuildingData);
+					ExecuteUnitMoveAction(newUnitReference, newPoints);
+					ExecuteUnitBuildingCaptureAction(newUnitReference, entities[0] as BuildingData);
 
 					SetState(GamePlayerState.Idle_ActivePlayer);
 					PlayerInterface.EnableTargetTooltip(false);
@@ -316,7 +338,7 @@ public class GamePlayer : MonoBehaviour
 				//	move
 				buttonActions[1] = () =>
 				{
-					PerformUnitMoveAction(newUnitReference, newPoints);
+					ExecuteUnitMoveAction(newUnitReference, newPoints);
 					SetState(GamePlayerState.Idle_ActivePlayer);
 					PlayerInterface.EnableTargetTooltip(false);
 					PlayerInterface.ConfirmBox.Disable();
@@ -342,7 +364,7 @@ public class GamePlayer : MonoBehaviour
 				//	confirm
 				() =>
 				{
-					PerformUnitMoveAction(newUnitReference, newPoints);
+					ExecuteUnitMoveAction(newUnitReference, newPoints);
 					SetState(GamePlayerState.Idle_ActivePlayer);
 					PlayerInterface.EnableTargetTooltip(false);
 				},
@@ -362,10 +384,19 @@ public class GamePlayer : MonoBehaviour
 		CancelUnitCommand(false);
 	}
 
-	private void PerformUnitMoveAction(UnitData unit, List<Point> points)
+	/// <summary>
+	/// Move the given unit along the target path.
+	/// </summary>
+	private void ExecuteUnitMoveAction(UnitData unit, List<Point> points)
 	{
+		if(points.Count > unit.RemainingMovement)
+		{
+			throw new Exception(string.Format("attempted to move unit {0} greater than its remaining movement", unit.name));
+		}
+
 		unit.RemainingMovement -= points.Count;
 		GameController.Instance.CurrentGameMatch.Map.MoveEntity(unit, points);
+		(GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit).CheckRemainingActions();
 
 		foreach (Point p in points)
 		{
@@ -373,7 +404,10 @@ public class GamePlayer : MonoBehaviour
 		}
 	}
 
-	private void PerformUnitBuildingCaptureAction(UnitData unit, BuildingData building)
+	/// <summary>
+	/// Capture the target building using the given unit.
+	/// </summary>
+	private void ExecuteUnitBuildingCaptureAction(UnitData unit, BuildingData building)
 	{
 		//	capture neutral building
 		if (building.Owner == NEUTRAL_PLAYER_ID)
@@ -396,7 +430,7 @@ public class GamePlayer : MonoBehaviour
 	/// </summary>
 	public void BeginUnitAttack(UnitData unit)
 	{
-		if (State != GamePlayerState.Idle_ActivePlayer)
+		if (State != GamePlayerState.Idle_ActivePlayer || unit.RemainingAttacks <= 0)
 		{
 			return;
 		}
@@ -424,14 +458,7 @@ public class GamePlayer : MonoBehaviour
 
 				GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile(target.x, target.y);
 
-				bool validate = false;
-
 				if (tile != null)
-				{
-					validate = true;
-				}
-
-				if (validate)
 				{
 					tiles.Add(tile);
 				}
@@ -547,7 +574,7 @@ public class GamePlayer : MonoBehaviour
 
 				PlayerInterface.ConfirmBox.EnableConfirmationBox(() =>
 				{
-					PerformUnitAttackAction(newUnitReference, target, newPoints);
+					ExecuteUnitAttackAction(newUnitReference, target, newPoints);
 					PlayerInterface.EnableTargetTooltip(false);
 					SetState(GamePlayerState.Idle_ActivePlayer);
 				},
@@ -575,10 +602,24 @@ public class GamePlayer : MonoBehaviour
 		}
 	}
 
-	private void PerformUnitAttackAction(UnitData unit, UnitData target, List<Point> points)
+	/// <summary>
+	/// Execute a unit attack command
+	/// </summary>
+	private void ExecuteUnitAttackAction(UnitData unit, UnitData target, List<Point> points)
 	{
+		if(unit.RemainingAttacks <= 0)
+		{
+			throw new Exception(string.Format("attempted attack with unit {0} but it has no attacks left", unit.name));
+		}
+
 		unit.RemainingAttacks--;
-		target.RemainingHealth--;
+		target.RemainingHealth -= unit.BaseAttackDamage;
+		if(target.RemainingHealth <= 0)
+		{
+			target.RemainingHealth = 0;
+		}
+
+		(GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit).CheckRemainingActions();
 
 		foreach (Point p in points)
 		{

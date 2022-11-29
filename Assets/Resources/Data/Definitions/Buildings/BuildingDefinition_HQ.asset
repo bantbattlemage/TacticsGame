@@ -10,7 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac65306a7be9f8c46a282cead4c0e716, type: 3}
-  m_Name: CityBuildingDefinition
+  m_Name: BuildingDefinition_HQ
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 4379241539801061471, guid: 635a0d00ab1384545bccfe7be17ca2d3, type: 3}
-  BuildingType: 1
+  Prefab: {fileID: 4379241539801061471, guid: 739085eae109d6445b64023587decf01, type: 3}

@@ -149,7 +149,7 @@ public class GameMap : MonoBehaviour
 					{
 						foreach (BuildingData buildingData in tile.Entities)
 						{
-							if (buildingData.Owner == playerId && ((BuildingDefinition)buildingData.Definition).BuildingType == GameBuildingType.HQ)
+							if (buildingData.Owner == playerId && buildingData.TypedDefinition.BuildingType == GameBuildingType.HQ)
 							{
 								return activeTiles[x, y];
 							}
