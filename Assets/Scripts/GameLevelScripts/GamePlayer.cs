@@ -78,6 +78,11 @@ public class GamePlayer : MonoBehaviour
 
     public void BeginMoveUnit(UnitData unit)
     {
+        if (_isMovingUnit)
+        {
+            return;
+        }
+
         List<GameTile> tiles = new List<GameTile>();
         int range = unit.RemainingMovement;
         _cachedMaxMoveDistance = range;
@@ -248,6 +253,11 @@ public class GamePlayer : MonoBehaviour
 
     public void BeginUnitAttack(UnitData unit)
     {
+        if(_isMovingUnit)
+        {
+            return;
+        }
+
         List<GameTile> tiles = new List<GameTile>();
         int range = unit.BaseAttackRange;
         _cachedMaxMoveDistance = range;
@@ -361,7 +371,12 @@ public class GamePlayer : MonoBehaviour
     {
         if (_cachedPath != null && _cachedPath.Count > 0)
         {
-            UnitData target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
+            UnitData target = null;
+
+            if(sender.TileData.Entities.Length > 0)
+            {
+                target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
+            }
 
             if (target != null)
             {
