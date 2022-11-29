@@ -10,6 +10,7 @@ public class PlayerUI : MonoBehaviour
 {
     public Camera PlayerUiCamera;
     public PlayerTooltip Tooltip;
+    public ConfirmationBox ConfirmBox;
 
     [HideInInspector]
     public Camera PlayerGameCamera;
@@ -75,7 +76,7 @@ public class PlayerUI : MonoBehaviour
 
     private void ProcessMouseClick()
     {
-        if(IsOverInterface())
+        if(IsOverInterface() || _lockMouseOver)
         {
             return;
         }

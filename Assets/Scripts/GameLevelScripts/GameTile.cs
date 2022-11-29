@@ -17,11 +17,12 @@ public class GameTile : MonoBehaviour
 
     public List<GameEntity> SpawnedEntities = new List<GameEntity>();
 
-    private bool _isBeingUsedForMovement = false;
-
     public delegate void GameTileMoveUnitEvent(GameTile sender);
     public GameTileMoveUnitEvent GameTileMoveUnitMouseOver;
     public GameTileMoveUnitEvent GameTileMoveUnitMouseClick;
+
+    private bool _isBeingUsedForMovement = false;
+    public bool _locked = false;
 
     public void Initialize(TileData data)
     {
@@ -46,6 +47,17 @@ public class GameTile : MonoBehaviour
 
         BasePlane.SetActive(true);
         HilightPlane.SetActive(false);
+    }
+
+    public void LockTile()
+    {
+        _locked = true;
+    }
+
+    public void UnlockTile()
+    {
+        _locked = false;
+        DisableHilightForMovement();
     }
 
     public void AddEntity(GameEntityData entityToAdd)
@@ -119,7 +131,7 @@ public class GameTile : MonoBehaviour
 
     public void DisableHilightForMovement()
     {
-        if (_isBeingUsedForMovement)
+        if (_isBeingUsedForMovement && !_locked)
         {
             HilightPlane.SetActive(false);
             _isBeingUsedForMovement = false;
@@ -131,6 +143,11 @@ public class GameTile : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (_locked)
+        {
+            return;
+        }
+
         if (_isBeingUsedForMovement)
         {
             GameTileMoveUnitMouseClick(this);
@@ -144,6 +161,11 @@ public class GameTile : MonoBehaviour
 
     private void OnMouseUp()
     {
+        if (_locked)
+        {
+            return;
+        }
+
         if (_isBeingUsedForMovement)
         {
 
@@ -156,7 +178,12 @@ public class GameTile : MonoBehaviour
 
     private void OnMouseEnter()
     {
-        if(_isBeingUsedForMovement)
+        if (_locked)
+        {
+            return;
+        }
+
+        if (_isBeingUsedForMovement)
         {
             HilightPlane.GetComponent<MeshRenderer>().material = HilightGreenMaterial;
             GameTileMoveUnitMouseOver(this);
@@ -170,6 +197,11 @@ public class GameTile : MonoBehaviour
 
     private void OnMouseExit()
     {
+        if (_locked)
+        {
+            return;
+        }
+
         if (_isBeingUsedForMovement)
         {
             HilightPlane.GetComponent<MeshRenderer>().material = HilightRedMaterial;

@@ -267,8 +267,33 @@ public class GamePlayer : MonoBehaviour
     {
         if(_cachedPath != null && _cachedPath.Count > 0)
         {
-            _activeMoveUnit.RemainingMovement -= _cachedPath.Count;
-            GameController.Instance.CurrentGameMatch.Map.MoveEntity(_activeMoveUnit, _cachedPath);
+            PlayerInterface.SetLock(true);
+
+            foreach(Point p in _cachedPath)
+            {
+                GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).LockTile();
+            }
+
+            UnitData newUnitReference = _activeMoveUnit;
+            List<Point> newPoints = new List<Point>(_cachedPath);
+
+            PlayerInterface.ConfirmBox.EnableConfirmationBox(() => 
+            {
+                newUnitReference.RemainingMovement -= newPoints.Count;
+                GameController.Instance.CurrentGameMatch.Map.MoveEntity(newUnitReference, newPoints);
+
+                foreach (Point p in newPoints)
+                {
+                    GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+                }
+            }, 
+            () => 
+            {
+                foreach (Point p in newPoints)
+                {
+                    GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+                }
+            });
         }
 
         CancelMoveUnit();
