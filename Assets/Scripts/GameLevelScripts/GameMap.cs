@@ -101,6 +101,22 @@ public class GameMap : MonoBehaviour
 		}
 	}
 
+	public GameEntity GetEntity(GameEntityData data)
+	{
+		GameEntity entity = null;
+
+		foreach (GameTile tile in activeTiles)
+		{
+			if(tile.TileData.Entities.Contains(data))
+			{
+				entity = tile.SpawnedEntities.First(x => x.Data == data);
+				break;
+			}
+		}
+
+		return entity;
+	}
+
 	public List<GameEntity> GetAllPlayerEntities(int playerId)
 	{
 		List<GameEntity> gameEntities = new List<GameEntity>();

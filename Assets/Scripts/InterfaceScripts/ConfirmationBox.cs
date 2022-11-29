@@ -67,7 +67,7 @@ public class ConfirmationBox : MonoBehaviour
 		Disable();
 
 		gameObject.GetComponent<Image>().enabled = true;
-		gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(100, _buttonHeight * buttonLabels.Length + 20);
+		gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(100, (_buttonHeight+40 * buttonLabels.Length) + 20);
 
 		gameObject.transform.position = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0);
 
@@ -76,7 +76,7 @@ public class ConfirmationBox : MonoBehaviour
 		for (int i = 0; i < buttonActions.Length; i++)
 		{
 			_buttons[i].gameObject.SetActive(true);
-			_buttons[i].GetComponent<RectTransform>().localPosition = new Vector3(0, -(_buttonHeight + 10) * i, 0);
+			_buttons[i].GetComponent<RectTransform>().localPosition = new Vector3(0, -10 + -(_buttonHeight + 10) * i, 0);
 			_buttons[i].GetComponentInChildren<TextMeshProUGUI>().text = buttonLabels[i];
 			_buttons[i].onClick.AddListener(_buttonActions[i]);
 		}

@@ -50,7 +50,6 @@ public class PlayerUI : MonoBehaviour
 		ProcessTooltip();
 		ProcessTargetTooltip();
 		ProcessMouseClick();
-		//ProcessTargetTooltipMouseClick();
 	}
 
 	public void SetLock(bool set)
@@ -72,19 +71,6 @@ public class PlayerUI : MonoBehaviour
 		_lockMouseOver = false;
 		ProcessTooltip();
 		Tooltip.Select(entityReference.DataSource);
-		_lockMouseOver = true;
-	}
-
-	private void SelectEntityForTargetTooltip(ObjectTooltip entityReference)
-	{
-		if (!TargetTooltip.gameObject.activeInHierarchy)
-		{
-			return;
-		}
-
-		_lockMouseOver = false;
-		ProcessTooltip();
-		TargetTooltip.Select(entityReference.DataSource);
 		_lockMouseOver = true;
 	}
 
@@ -124,6 +110,7 @@ public class PlayerUI : MonoBehaviour
 		{
 			RaycastHit hit;
 			Ray rayOrigin = PlayerGameCamera.ScreenPointToRay(Input.mousePosition);
+			
 			if (Physics.Raycast(rayOrigin, out hit))
 			{
 				ObjectTooltip toolTip = hit.transform.gameObject.GetComponent<ObjectTooltip>();

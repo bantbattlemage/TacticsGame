@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
+using static UnityEngine.GraphicsBuffer;
 
 public enum GamePlayerState
 {
@@ -15,6 +17,8 @@ public enum GamePlayerState
 
 public class GamePlayer : MonoBehaviour
 {
+	public static int NEUTRAL_PLAYER_ID { get { return -1; } }
+
 	public PlayerData GamePlayerData;
 	public GameCamera PlayerCamera;
 	public PlayerUI PlayerInterface;
@@ -54,6 +58,10 @@ public class GamePlayer : MonoBehaviour
 		State = state;
 
 		PlayerInterface.EndTurnButton.gameObject.SetActive(state == GamePlayerState.Idle_ActivePlayer);
+		if(state == GamePlayerState.Idle_ActivePlayer)
+		{
+			PlayerInterface.SetLock(false);
+		}
 	}
 
 	#region Player Turn Actions
@@ -116,7 +124,7 @@ public class GamePlayer : MonoBehaviour
 	/// <summary>
 	/// Enter a Player Move Unit Action state
 	/// </summary>
-	public void BeginMoveUnit(UnitData unit)
+	public void BeginUnitMove(UnitData unit)
 	{
 		if (State != GamePlayerState.Idle_ActivePlayer)
 		{
@@ -156,10 +164,17 @@ public class GamePlayer : MonoBehaviour
 						validate = false;
 					}
 
-					//  cannot move into tiles occupied by anything else
 					if (tile.TileData.Entities != null && tile.TileData.Entities.Length > 0)
 					{
-						validate = false;
+						List<GameEntityData> entities = tile.TileData.Entities.ToList();
+						if(entities.Count == 1 && entities[0].Definition.EntityType == GameEntityType.Building)
+						{
+							validate = true;
+						}
+						else
+						{
+							validate = false;
+						}
 					}
 				}
 				else
@@ -183,7 +198,7 @@ public class GamePlayer : MonoBehaviour
 
 		foreach (GameTile tile in filteredTiles)
 		{
-			tile.EnableHilightForMovement(OnGameTileMoveUnitEnterAction, OnGameTileMoveClickAction);
+			tile.EnableHilightForMovement(OnGameTileUnitMoveMouseEnterAction, OnGameTileUnitMoveClickAction);
 		}
 
 		_activeSelectedUnit = unit;
@@ -217,7 +232,6 @@ public class GamePlayer : MonoBehaviour
 		if (fullReset)
 		{
 			SetState(GamePlayerState.Idle_ActivePlayer);
-			PlayerInterface.SetLock(false);
 			PlayerInterface.EnableTargetTooltip(false);
 		}
 	}
@@ -225,7 +239,7 @@ public class GamePlayer : MonoBehaviour
 	/// <summary>
 	/// Called when mouse enters a tile that is active in a move command
 	/// </summary>
-	private void OnGameTileMoveUnitEnterAction(GameTile sender)
+	private void OnGameTileUnitMoveMouseEnterAction(GameTile sender)
 	{
 		List<GameTile> tiles = new List<GameTile>();
 
@@ -266,7 +280,7 @@ public class GamePlayer : MonoBehaviour
 	/// <summary>
 	/// Confirms a unit movement command
 	/// </summary>
-	private void OnGameTileMoveClickAction(GameTile sender)
+	private void OnGameTileUnitMoveClickAction(GameTile sender)
 	{
 		if (_cachedPath != null && _cachedPath.Count > 0)
 		{
@@ -280,34 +294,99 @@ public class GamePlayer : MonoBehaviour
 			UnitData newUnitReference = _activeSelectedUnit;
 			List<Point> newPoints = new List<Point>(_cachedPath);
 
-			PlayerInterface.ConfirmBox.EnableConfirmationBox(() =>
+			GameEntityData[] entities = sender.TileData.Entities;
+
+			//	moving into a tile with a capturable building
+			if (entities != null && entities.Length == 1 && entities[0].Definition.EntityType == GameEntityType.Building && entities[0].Owner != GamePlayerData.ID)
 			{
-				newUnitReference.RemainingMovement -= newPoints.Count;
-				GameController.Instance.CurrentGameMatch.Map.MoveEntity(newUnitReference, newPoints);
+				UnityAction[] buttonActions = new UnityAction[3];
+				string[] buttonLabels = new string[] { "Capture", "Move", "Cancel" };
+				int cancelIndex = 2;
 
-				foreach (Point p in newPoints)
+				//	capture
+				buttonActions[0] = () => 
 				{
-					GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
-				}
+					PerformUnitMoveAction(newUnitReference, newPoints);
+					PerformUnitBuildingCaptureAction(newUnitReference, entities[0] as BuildingData);
 
-				SetState(GamePlayerState.Idle_ActivePlayer);
-				PlayerInterface.SetLock(false);
-				PlayerInterface.EnableTargetTooltip(false);
-			},
-			() =>
+					SetState(GamePlayerState.Idle_ActivePlayer);
+					PlayerInterface.EnableTargetTooltip(false);
+					PlayerInterface.ConfirmBox.Disable();
+				};
+				//	move
+				buttonActions[1] = () =>
+				{
+					PerformUnitMoveAction(newUnitReference, newPoints);
+					SetState(GamePlayerState.Idle_ActivePlayer);
+					PlayerInterface.EnableTargetTooltip(false);
+					PlayerInterface.ConfirmBox.Disable();
+				};
+				//	cancel
+				buttonActions[2] = () =>
+				{
+					SetState(GamePlayerState.Idle_ActivePlayer);
+					PlayerInterface.EnableTargetTooltip(false);
+					PlayerInterface.ConfirmBox.Disable();
+					foreach (Point p in newPoints)
+					{
+						GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+					}
+				};
+
+				PlayerInterface.ConfirmBox.EnableBox(buttonActions, buttonLabels, cancelIndex);
+			}
+			//	normal movement
+			else
 			{
-				foreach (Point p in newPoints)
+				PlayerInterface.ConfirmBox.EnableConfirmationBox(
+				//	confirm
+				() =>
 				{
-					GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
-				}
-
-				SetState(GamePlayerState.Idle_ActivePlayer);
-				PlayerInterface.SetLock(false);
-				PlayerInterface.EnableTargetTooltip(false);
-			});
+					PerformUnitMoveAction(newUnitReference, newPoints);
+					SetState(GamePlayerState.Idle_ActivePlayer);
+					PlayerInterface.EnableTargetTooltip(false);
+				},
+				//	cancel
+				() =>
+				{
+					SetState(GamePlayerState.Idle_ActivePlayer);
+					PlayerInterface.EnableTargetTooltip(false);
+					foreach (Point p in newPoints)
+					{
+						GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+					}
+				});
+			}
 		}
 
 		CancelUnitCommand(false);
+	}
+
+	private void PerformUnitMoveAction(UnitData unit, List<Point> points)
+	{
+		unit.RemainingMovement -= points.Count;
+		GameController.Instance.CurrentGameMatch.Map.MoveEntity(unit, points);
+
+		foreach (Point p in points)
+		{
+			GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+		}
+	}
+
+	private void PerformUnitBuildingCaptureAction(UnitData unit, BuildingData building)
+	{
+		//	capture neutral building
+		if (building.Owner == NEUTRAL_PLAYER_ID)
+		{
+			building.Owner = GamePlayerData.ID;
+			GameController.Instance.CurrentGameMatch.Map.GetEntity(building).SetPlayerColor();
+		}
+		//	set other player's building to neutral
+		else
+		{
+			building.Owner = NEUTRAL_PLAYER_ID;
+			GameController.Instance.CurrentGameMatch.Map.GetEntity(building).SetPlayerColor();
+		}
 	}
 	#endregion
 
@@ -368,7 +447,7 @@ public class GamePlayer : MonoBehaviour
 
 		foreach (GameTile tile in filteredTiles)
 		{
-			tile.EnableHilightForMovement(OnGameTileUnitAttackEnterAction, OnGameTileUnitAttackClickAction);
+			tile.EnableHilightForMovement(OnGameTileUnitAttackMouseEnterAction, OnGameTileUnitAttackClickAction);
 		}
 
 		_activeSelectedUnit = unit;
@@ -381,7 +460,7 @@ public class GamePlayer : MonoBehaviour
 	/// <summary>
 	/// Called when mouse enters a tile that is active in an attack command
 	/// </summary>
-	private void OnGameTileUnitAttackEnterAction(GameTile sender)
+	private void OnGameTileUnitAttackMouseEnterAction(GameTile sender)
 	{
 		List<GameTile> tiles = new List<GameTile>();
 
@@ -402,7 +481,7 @@ public class GamePlayer : MonoBehaviour
 				{
 					if (tile.TileData.Entities != null && tile.TileData.Entities.Length > 0)
 					{
-						if (tile.TileData.Entities.Any(x => x.Owner != GamePlayerData.ID))
+						if (tile.TileData.Entities.Any(x => x.Owner != GamePlayerData.ID && x.Definition.EntityType == GameEntityType.Unit))
 						{
 							validate = true;
 						}
@@ -448,7 +527,7 @@ public class GamePlayer : MonoBehaviour
 			{
 				try
 				{
-					target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID) as UnitData;
+					target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID && x.Definition.EntityType == GameEntityType.Unit) as UnitData;
 				}
 				catch (Exception ex)
 				{
@@ -468,28 +547,19 @@ public class GamePlayer : MonoBehaviour
 
 				PlayerInterface.ConfirmBox.EnableConfirmationBox(() =>
 				{
-					newUnitReference.RemainingAttacks--;
-					target.RemainingHealth--;
-
-					foreach (Point p in newPoints)
-					{
-						GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
-					}
-
-					PlayerInterface.SetLock(false);
+					PerformUnitAttackAction(newUnitReference, target, newPoints);
 					PlayerInterface.EnableTargetTooltip(false);
 					SetState(GamePlayerState.Idle_ActivePlayer);
 				},
 				() =>
 				{
+					PlayerInterface.EnableTargetTooltip(false);
+					SetState(GamePlayerState.Idle_ActivePlayer);
+
 					foreach (Point p in newPoints)
 					{
 						GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
 					}
-
-					PlayerInterface.SetLock(false);
-					PlayerInterface.EnableTargetTooltip(false);
-					SetState(GamePlayerState.Idle_ActivePlayer);
 				});
 
 				CancelUnitCommand(false);
@@ -502,6 +572,17 @@ public class GamePlayer : MonoBehaviour
 		else
 		{
 			CancelUnitCommand();
+		}
+	}
+
+	private void PerformUnitAttackAction(UnitData unit, UnitData target, List<Point> points)
+	{
+		unit.RemainingAttacks--;
+		target.RemainingHealth--;
+
+		foreach (Point p in points)
+		{
+			GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
 		}
 	}
 	#endregion
