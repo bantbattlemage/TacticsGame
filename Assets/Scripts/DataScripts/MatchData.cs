@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class MatchData : GameData
 {
-    public int CurrentRound;
-    public int CurrentActivePlayer;
+	public int CurrentRound;
+	public int CurrentActivePlayer;
 
-    public override GameDataType DataType => GameDataType.Match;
+	public override GameDataType DataType => GameDataType.Match;
 }

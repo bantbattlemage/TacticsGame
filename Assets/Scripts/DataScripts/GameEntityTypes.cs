@@ -1,6 +1,6 @@
 public enum GameEntityType
 {
-    UNASSIGNED,
-    Unit,
-    Building
+	UNASSIGNED,
+	Unit,
+	Building
 }

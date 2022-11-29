@@ -8,6 +8,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "MapData", menuName = "ScriptableObjects/MapData", order = 1)]
 public class MapData : GameData
 {
-    public PlayerData[] MapPlayers;
-    public TileData[] MapTiles;
+	public PlayerData[] MapPlayers;
+	public TileData[] MapTiles;
 }

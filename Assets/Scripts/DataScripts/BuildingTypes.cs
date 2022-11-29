@@ -1,6 +1,6 @@
 public enum GameBuildingType
 {
-    HQ,
-    Town,
-    Barracks
+	HQ,
+	City,
+	Barracks
 }

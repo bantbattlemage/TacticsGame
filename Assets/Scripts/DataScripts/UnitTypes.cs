@@ -1,5 +1,5 @@
 public enum GameUnitType
 {
-    Commander,
-    Regular
+	Commander,
+	Regular
 }

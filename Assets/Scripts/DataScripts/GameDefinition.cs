@@ -4,6 +4,6 @@ using UnityEngine;
 
 public class GameDefinition : GameData
 {
-    public virtual GameEntityType EntityType { get { return GameEntityType.UNASSIGNED; } }
-    public GameObject Prefab;
+	public virtual GameEntityType EntityType { get { return GameEntityType.UNASSIGNED; } }
+	public GameObject Prefab;
 }

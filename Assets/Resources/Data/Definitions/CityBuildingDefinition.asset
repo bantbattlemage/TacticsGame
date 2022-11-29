@@ -9,11 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c59da03b59add4e4b81a1c66c1d1d52b, type: 3}
-  m_Name: tile33
+  m_Script: {fileID: 11500000, guid: ac65306a7be9f8c46a282cead4c0e716, type: 3}
+  m_Name: CityBuildingDefinition
   m_EditorClassIdentifier: 
-  X: 3
-  Y: 3
-  Type: 0
-  Entities:
-  - {fileID: 11400000, guid: d172c3cad85de194ba18778fa4bd6112, type: 2}
+  Prefab: {fileID: 4379241539801061471, guid: 635a0d00ab1384545bccfe7be17ca2d3, type: 3}
+  BuildingType: 1
