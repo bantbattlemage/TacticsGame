@@ -15,7 +15,7 @@ public class ConfirmationBox : MonoBehaviour
     public Collider2D Blocker;
 
     private float _buttonHeight = 50;
-
+    private int _cancelActionIndex = -1;
     private UnityAction[] _buttonActions = null;
 
     private Button[] _buttons { get { return new Button[] { ButtonOne, ButtonTwo, ButtonThree, ButtonFour }; } }
@@ -23,6 +23,17 @@ public class ConfirmationBox : MonoBehaviour
     private void Awake()
     {
         Disable();
+    }
+
+    private void Update()
+    {
+        if(_buttonActions != null && _cancelActionIndex >= 0)
+        {
+            if(Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
+            {
+                _buttonActions[_cancelActionIndex]();
+            }
+        }
     }
 
     public void Disable()
@@ -41,10 +52,12 @@ public class ConfirmationBox : MonoBehaviour
 
         gameObject.GetComponent<Image>().enabled = false;
 
+        _cancelActionIndex = -1;
+
         _buttonActions = null;
     }
 
-    public void EnableBox(UnityAction[] buttonActions, string[] buttonLabels)
+    public void EnableBox(UnityAction[] buttonActions, string[] buttonLabels, int cancelActionIndex)
     {
         if(buttonActions.Length > 4)
         {
@@ -69,6 +82,8 @@ public class ConfirmationBox : MonoBehaviour
         }
 
         Blocker.gameObject.SetActive(true);
+
+        _cancelActionIndex = cancelActionIndex;
     }
 
     public void EnableConfirmationBox(UnityAction confirmAction, UnityAction cancelAction)
@@ -76,19 +91,17 @@ public class ConfirmationBox : MonoBehaviour
         UnityAction[] buttonActions = new UnityAction[] {
             () =>
             {
-                Debug.Log("Confirm");
                 confirmAction();
                 Disable();
             },
             () =>
             {
-                Debug.Log("Cancel");
                 cancelAction();
                 Disable();
             }
         };
 
         string[] buttonNames = new string[] { "Confirm", "Cancel" };
-        EnableBox(buttonActions, buttonNames);
+        EnableBox(buttonActions, buttonNames, 1);
     }
 }

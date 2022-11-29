@@ -96,7 +96,7 @@ public class GamePlayer : MonoBehaviour
         {
             for (int y = -range; y <= range; y++)
             {
-                Vector2 target = new Vector2(unit.Location.x + x, unit.Location.y + y);
+                Point target = new Point(unit.Location.x + x, unit.Location.y + y);
 
                 //  ignore tile already on
                 if (target.x == unit.Location.x && target.y == unit.Location.y)
@@ -104,7 +104,7 @@ public class GamePlayer : MonoBehaviour
                     continue;
                 }
 
-                GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile((int)target.x, (int)target.y);
+                GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile(target.x, target.y);
 
                 bool validate = true;
 
@@ -134,7 +134,7 @@ public class GamePlayer : MonoBehaviour
             }
         }
 
-        List<GameTile> filteredTiles = FilterTilesByDistance(tiles, unit, unit.RemainingMovement);
+        List<GameTile> filteredTiles = GameMap.FilterTilesByDistance(tiles, unit.Location, unit.RemainingMovement);
 
         if (filteredTiles.Count == 0)
         {
@@ -150,39 +150,6 @@ public class GamePlayer : MonoBehaviour
         _activeMoveTiles = filteredTiles;
         _isMovingUnit = true;
         PlayerInterface.ToggleLock();
-    }
-
-    private List<GameTile> FilterTilesByDistance(List<GameTile> tiles, UnitData unit, int distance)
-    {
-        bool[,] tilesMap = new bool[(int)GameController.Instance.CurrentGameMatch.Map.MapSize.x, (int)GameController.Instance.CurrentGameMatch.Map.MapSize.y];
-        for(int x = 0; x < tilesMap.GetLength(0); x++)
-        {
-            for(int y = 0; y < tilesMap.GetLength(1); y++)
-            {
-                tilesMap[x, y] = false;
-            }
-        }
-
-        foreach (GameTile tile in tiles)
-        {
-            tilesMap[tile.TileData.X, tile.TileData.Y] = true;
-        }
-
-        List<GameTile> filteredTiles = new List<GameTile>();
-        foreach (GameTile tile in tiles)
-        {
-            NesScripts.Controls.PathFind.Grid grid = new NesScripts.Controls.PathFind.Grid(tilesMap);
-            Point from = new Point((int)unit.Location.x, (int)unit.Location.y);
-            Point to = new Point(tile.TileData.X, tile.TileData.Y);
-            List<Point> path = Pathfinding.FindPath(grid, from, to, Pathfinding.DistanceType.Manhattan);
-
-            if (path.Count <= distance && path.Count > 0)
-            {
-                filteredTiles.Add(tile);
-            }
-        }
-
-        return filteredTiles;
     }
 
     private void CancelMoveUnit()

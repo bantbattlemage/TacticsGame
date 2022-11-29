@@ -1,3 +1,4 @@
+using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ public class GameEntity : MonoBehaviour
 {
     public GameEntityData Data;
 
-    public virtual void Initialize(GameEntityData data, Vector2 location)
+    public virtual void Initialize(GameEntityData data, Point location)
     {
         Data = data;
         Data.Location = location;

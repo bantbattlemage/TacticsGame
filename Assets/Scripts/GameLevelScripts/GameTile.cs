@@ -1,3 +1,4 @@
+using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,7 +75,7 @@ public class GameTile : MonoBehaviour
             GameObject newEntity = Instantiate(entityToSpawn.Definition.Prefab, transform);
             GameEntity entity = newEntity.GetComponent<GameEntity>();
             newEntity.transform.localPosition = new Vector3(0, 0, 0);
-            entity.Initialize(entityToSpawn, new Vector2(TileData.X, TileData.Y));
+            entity.Initialize(entityToSpawn, new Point(TileData.X, TileData.Y));
             SpawnedEntities.Add(entity);
         }
         else

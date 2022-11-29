@@ -1,3 +1,4 @@
+using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,7 +126,7 @@ public class LevelEditorController : MonoBehaviour
                         foreach(GameEntityData data in tileData.Entities)
                         {
                             GameObject newEntity = Instantiate(data.Definition.Prefab, newlyInstantiatedTile.transform);
-                            newEntity.GetComponent<GameEntity>().Initialize(data, new Vector2(tileData.X, tileData.Y));
+                            newEntity.GetComponent<GameEntity>().Initialize(data, new Point(tileData.X, tileData.Y));
                         }
                     }
 

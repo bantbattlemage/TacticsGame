@@ -1,3 +1,4 @@
+using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +8,7 @@ public class GameEntityData : GameData
 {
     public GameDefinition Definition;
     public int Owner = -1;
-    public Vector2 Location;
+    public Point Location;
 
     public override GameDataType DataType
     {

@@ -35,6 +35,42 @@ public class GameMap : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Returns all tiles within 'walking' distance of the startPoint.
+    /// </summary>
+    public static List<GameTile> FilterTilesByDistance(List<GameTile> tiles, Point startPoint, int distance)
+    {
+        bool[,] tilesMap = new bool[(int)GameController.Instance.CurrentGameMatch.Map.MapSize.x, (int)GameController.Instance.CurrentGameMatch.Map.MapSize.y];
+        for (int x = 0; x < tilesMap.GetLength(0); x++)
+        {
+            for (int y = 0; y < tilesMap.GetLength(1); y++)
+            {
+                tilesMap[x, y] = false;
+            }
+        }
+
+        foreach (GameTile tile in tiles)
+        {
+            tilesMap[tile.TileData.X, tile.TileData.Y] = true;
+        }
+
+        List<GameTile> filteredTiles = new List<GameTile>();
+        foreach (GameTile tile in tiles)
+        {
+            NesScripts.Controls.PathFind.Grid grid = new NesScripts.Controls.PathFind.Grid(tilesMap);
+            Point from = new Point(startPoint.x, startPoint.y);
+            Point to = new Point(tile.TileData.X, tile.TileData.Y);
+            List<Point> path = Pathfinding.FindPath(grid, from, to, Pathfinding.DistanceType.Manhattan);
+
+            if (path.Count <= distance && path.Count > 0)
+            {
+                filteredTiles.Add(tile);
+            }
+        }
+
+        return filteredTiles;
+    }
+
     public GameTile[,] GameTiles
     {
         get

@@ -11,6 +11,7 @@ namespace NesScripts.Controls.PathFind
     /// <summary>
     /// A 2d point on the grid
     /// </summary>
+    [System.Serializable]
     public struct Point
     {
         // point X
