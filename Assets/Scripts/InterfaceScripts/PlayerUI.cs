@@ -72,7 +72,6 @@ public class PlayerUI : MonoBehaviour
         _lockMouseOver = false;
         ProcessTooltip();
         Tooltip.Select(entityReference.DataSource);
-        EndTurnButton.gameObject.SetActive(false);
         _lockMouseOver = true;
     }
 
@@ -86,7 +85,6 @@ public class PlayerUI : MonoBehaviour
         _lockMouseOver = false;
         ProcessTooltip();
         TargetTooltip.Select(entityReference.DataSource);
-        EndTurnButton.gameObject.SetActive(false);
         _lockMouseOver = true;
     }
 
@@ -94,9 +92,8 @@ public class PlayerUI : MonoBehaviour
     {
         Tooltip.Deselect();
 
-        if(!GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsMovingUnit)
+        if(!GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsUsingUnitAction)
         {
-            EndTurnButton.gameObject.SetActive(true);
             TargetTooltip.LockMouseOver(false);
             TargetTooltip.gameObject.SetActive(false);
         }
@@ -106,7 +103,7 @@ public class PlayerUI : MonoBehaviour
     {
         if(IsMouseOverInterface() || _lockMouseOver)
         {
-            if (!IsMouseOverInterface() && _lockMouseOver && !GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsMovingUnit && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
+            if (!IsMouseOverInterface() && _lockMouseOver && !GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsUsingUnitAction && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
             {
                 _lockMouseOver = false;
                 DeselectEntity();
@@ -122,6 +119,7 @@ public class PlayerUI : MonoBehaviour
             }
         }
         
+        //  Left Click
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
@@ -132,28 +130,6 @@ public class PlayerUI : MonoBehaviour
                 if (toolTip != null && toolTip.DataSource.DataType == GameDataType.Entity)
                 {
                     SelectEntity(toolTip);
-                }
-            }
-        }
-    }
-
-    private void ProcessTargetTooltipMouseClick()
-    {
-        if (IsMouseOverInterface() || !TargetTooltip.gameObject.activeInHierarchy)
-        {
-            return;
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            RaycastHit hit;
-            Ray rayOrigin = PlayerGameCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(rayOrigin, out hit))
-            {
-                ObjectTooltip toolTip = hit.transform.gameObject.GetComponent<ObjectTooltip>();
-                if (toolTip != null && toolTip.DataSource.DataType == GameDataType.Entity)
-                {
-                    SelectEntityForTargetTooltip(toolTip);
                 }
             }
         }
@@ -218,7 +194,7 @@ public class PlayerUI : MonoBehaviour
         RoundNumber.text = string.Format("Round: {0}", roundNumber+1);
     }
 
-    public void OnEndTurnButtonPressed()
+    public void EndTurnButtonAction()
     {
         if(EndTurnButtonPressed != null)
         {

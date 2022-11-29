@@ -20,8 +20,8 @@ public class GamePlayer : MonoBehaviour
     public PlayerUI PlayerInterface;
 
     public GamePlayerState State { get; private set; }
+    public bool IsUsingUnitAction { get { return State == GamePlayerState.UnitMoveAction || State == GamePlayerState.UnitAttackAction; } }
 
-    public bool IsMovingUnit { get { return State == GamePlayerState.UnitMoveAction || State == GamePlayerState.UnitAttackAction; } }
     private int _cachedMaxMoveDistance = 0;
     private UnitData _activeSelectedUnit = null;
     private List<GameTile> _activeMoveTiles = new List<GameTile>();
@@ -43,15 +43,17 @@ public class GamePlayer : MonoBehaviour
     private void Update()
     {
         //  right click cancel
-        if(IsMovingUnit && Input.GetMouseButtonDown(1))
+        if(IsUsingUnitAction && Input.GetMouseButtonDown(1))
         {
-            CancelMoveUnit();
+            CancelUnitCommand();
         }
     }
 
     public void SetState(GamePlayerState state)
     {
         State = state;
+
+        PlayerInterface.EndTurnButton.gameObject.SetActive(state == GamePlayerState.Idle_ActivePlayer);
     }
 
     #region Player Turn Actions
@@ -61,7 +63,7 @@ public class GamePlayer : MonoBehaviour
     /// </summary>
     public void BeginTurn(int roundNumber)
     {
-        CancelMoveUnit();
+        CancelUnitCommand();
 
         PlayerInterface.UpdateDisplayInfo(roundNumber);
 
@@ -81,7 +83,7 @@ public class GamePlayer : MonoBehaviour
     /// </summary>
     private void EndTurn()
     {
-        CancelMoveUnit();
+        CancelUnitCommand();
         SetState(GamePlayerState.Idle_InactivePlayer);
         RequestEndTurn(this);
     }
@@ -116,7 +118,7 @@ public class GamePlayer : MonoBehaviour
     /// </summary>
     public void BeginMoveUnit(UnitData unit)
     {
-        if (IsMovingUnit)
+        if (State != GamePlayerState.Idle_ActivePlayer)
         {
             return;
         }
@@ -194,9 +196,9 @@ public class GamePlayer : MonoBehaviour
     /// <summary>
     /// Clears the Move Unit State related variables. fullReset=true will exit the Move Unit state. false to just clear variables 
     /// </summary>
-    private void CancelMoveUnit(bool fullReset = true)
+    private void CancelUnitCommand(bool fullReset = true)
     {
-        if(!IsMovingUnit)
+        if(!IsUsingUnitAction)
         {
             return;
         }
@@ -305,7 +307,7 @@ public class GamePlayer : MonoBehaviour
             });
         }
 
-        CancelMoveUnit(false);
+        CancelUnitCommand(false);
     }
     #endregion
 
@@ -315,7 +317,7 @@ public class GamePlayer : MonoBehaviour
     /// </summary>
     public void BeginUnitAttack(UnitData unit)
     {
-        if(IsMovingUnit)
+        if (State != GamePlayerState.Idle_ActivePlayer)
         {
             return;
         }
@@ -457,16 +459,11 @@ public class GamePlayer : MonoBehaviour
 
             if (target != null)
             {
-                foreach (Point p in _cachedPath)
-                {
-                    GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).LockTile();
-                }
-
+                GameController.Instance.CurrentGameMatch.Map.GetTile(_cachedPath.Last().x, _cachedPath.Last().y).LockTile();
                 UnitData newUnitReference = _activeSelectedUnit;
-                List<Point> newPoints = new List<Point>(_cachedPath);
+                List<Point> newPoints = new List<Point>() { _cachedPath.Last() };
 
-                PlayerInterface.SetLock(false);
-                PlayerInterface.Tooltip.UpdateTooltip(target);
+                PlayerInterface.TargetTooltip.UpdateTooltip(target);
                 PlayerInterface.SetLock(true);
 
                 PlayerInterface.ConfirmBox.EnableConfirmationBox(() =>
@@ -495,16 +492,16 @@ public class GamePlayer : MonoBehaviour
                     SetState(GamePlayerState.Idle_ActivePlayer);
                 });
 
-                CancelMoveUnit(false);
+                CancelUnitCommand(false);
             }
             else
             {
-                CancelMoveUnit();
+                CancelUnitCommand();
             }
         }
         else
         {
-            CancelMoveUnit();
+            CancelUnitCommand();
         }
     }
     #endregion
