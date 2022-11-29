@@ -20,13 +20,12 @@ public class GameMatch : MonoBehaviour
         return Players.First(x => x.GamePlayerData.ID == id);
     }
 
-    public void Initialize(GameMap map, GamePlayer[] players)
+    public void Initialize(string mapName, GamePlayer[] players, GameMap map)
     {
         Map = map;
         Players = players;
 
-        string mapToLoadPath = "Data/MapData/New/";
-        string mapName = "New";
+        string mapToLoadPath = "Data/MapData/"+mapName+"/";
 
         Map.transform.parent = transform;
         Map.LoadMap(mapToLoadPath, mapName);

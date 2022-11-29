@@ -283,36 +283,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1787968322}
-  - component: {fileID: 1787968321}
+  - component: {fileID: 1787968323}
   m_Layer: 0
   m_Name: LevelEditorController
-  m_TagString: Untagged
+  m_TagString: EditorOnly
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1787968321
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1787968320}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f965ac8d81f74fb4d97528d4c10db5d5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GenerateTiles: 0
-  DeleteTiles: 0
-  Length: 10
-  Width: 10
-  Name: Test
-  SaveTiles: 0
-  LoadMap: 0
-  MapToLoad: {fileID: 11400000, guid: 21d297f28eb69bc4abf06c19907ba3ae, type: 2}
-  BasicTile: {fileID: 5261466178935394230, guid: 5645a14657122fb49964f1e7f4aa00c8, type: 3}
-  TileSize: 10
 --- !u!4 &1787968322
 Transform:
   m_ObjectHideFlags: 0
@@ -328,3 +306,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1787968323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1787968320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f965ac8d81f74fb4d97528d4c10db5d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GenerateTiles: 0
+  DeleteTiles: 0
+  Length: 7
+  Width: 7
+  Players: 2
+  Name: TestMap
+  SaveTiles: 0
+  LoadMap: 0
+  MapToLoad: {fileID: 11400000, guid: e3aa24e2738adfd41a5c79340bfdaa40, type: 2}
+  BasicTile: {fileID: 5261466178935394230, guid: 5645a14657122fb49964f1e7f4aa00c8, type: 3}
+  TileSize: 10

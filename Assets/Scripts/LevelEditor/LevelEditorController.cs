@@ -8,13 +8,14 @@ using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
 
 [ExecuteInEditMode]
-public class LevelEditorController : MonoBehaviour
+public class LevelEditorController : RemovedDuringBuild
 {
     [Header("Generate New Map")]
     public bool GenerateTiles = false;
     public bool DeleteTiles = false;
     public int Length;
     public int Width;
+    public int Players;
 
     [Header("Save")]
     public string Name = "NewMap";
@@ -62,13 +63,19 @@ public class LevelEditorController : MonoBehaviour
     private void SaveMap()
     {
         string name = Name;
-        AssetDatabase.CreateFolder("Assets/Data/MapData", name);
-        AssetDatabase.CreateFolder("Assets/Data/MapData/" + name, "EntityData");
-        string guid = AssetDatabase.CreateFolder("Assets/Data/MapData/" + name, "TileData");
-        string newFolderPath = AssetDatabase.GUIDToAssetPath(guid);
+        AssetDatabase.DeleteAsset("Assets/" + name);
+        AssetDatabase.CreateFolder("Assets", name);
+        AssetDatabase.CreateFolder("Assets/" + name, "EntityData");
+        string playerDataGuid = AssetDatabase.CreateFolder("Assets/" + name, "PlayerData");
+        string tileDataGuid = AssetDatabase.CreateFolder("Assets/" + name, "TileData");
+        string tileFolderPath = AssetDatabase.GUIDToAssetPath(tileDataGuid);
+        string playerFolderPath = AssetDatabase.GUIDToAssetPath(playerDataGuid);
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
 
         MapData newMapData = ScriptableObject.CreateInstance<MapData>();
-        AssetDatabase.CreateAsset(newMapData, "Assets/Data/MapData/"+name+"/"+Name+".asset");
+        AssetDatabase.CreateAsset(newMapData, "Assets/"+name+"/"+Name+".asset");
 
         List<TileData> newTiles = new List<TileData>();
         for (int x = 0; x < LoadedTiles.GetLength(0); x++)
@@ -76,7 +83,7 @@ public class LevelEditorController : MonoBehaviour
             for (int y = 0; y < LoadedTiles.GetLength(1); y++)
             {
                 TileData data = LoadedTiles[x, y].GetComponent<GameTile>().TileData;
-                AssetDatabase.CreateAsset(data, newFolderPath + "/tile" + x + y + ".asset");
+                AssetDatabase.CreateAsset(data, tileFolderPath + "/tile" + x + y + ".asset");
                 newTiles.Add(data);
             }
         }
@@ -84,6 +91,16 @@ public class LevelEditorController : MonoBehaviour
         AssetDatabase.SaveAssets();
 
         newMapData.MapTiles = newTiles.ToArray();
+        newMapData.MapPlayers = new PlayerData[Players];
+
+        for(int i = 0; i < Players; i++)
+        {
+            PlayerData newPlayer = ScriptableObject.CreateInstance<PlayerData>();
+            newPlayer.ID = i;
+            newPlayer.Name = string.Format("Player {0}", i + 1);
+            newMapData.MapPlayers[i] = newPlayer;
+            AssetDatabase.CreateAsset(newPlayer, playerFolderPath + "/Player" + newPlayer.ID + ".asset");
+        }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -155,6 +172,16 @@ public class LevelEditorController : MonoBehaviour
             {
                 DestroyImmediate(g);
             }
+        }
+
+        foreach(Transform t in gameObject.GetComponentsInChildren<Transform>())
+        {
+            if(t == null || t == transform)
+            {
+                continue;
+            }
+
+            DestroyImmediate(t.gameObject);
         }
     }
 }
