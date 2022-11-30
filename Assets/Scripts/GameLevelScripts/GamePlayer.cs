@@ -75,6 +75,17 @@ public class GamePlayer : MonoBehaviour
 		}
 	}
 
+	public void SetMoney(int value)
+	{
+		if(value < 0)
+		{
+			value = 0;
+		}
+
+		GamePlayerData.Money = value;
+		PlayerInterface.SetMoneyDisplay(GamePlayerData.Money);
+	}
+
 	#region Player Turn Actions
 	/// <summary>
 	/// Set all player entities properties to default values.
@@ -110,6 +121,7 @@ public class GamePlayer : MonoBehaviour
 		PlayerInterface.UpdateDisplayInfo(roundNumber);
 
 		RefreshAllPlayerEntities();
+		CollectBuildingIncome();
 
 		GameTile hqTile = GameController.Instance.CurrentGameMatch.Map.GetPlayerHQ(GamePlayerData.ID);
 		if (hqTile != null)
@@ -142,12 +154,31 @@ public class GamePlayer : MonoBehaviour
 			entity.RefreshEntity();
 		}
 	}
+
+	public void CollectBuildingIncome()
+	{
+		List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID).Where(x => x.Data.Definition.EntityType == GameEntityType.Building).ToList();
+		int income = 0;
+
+		foreach (GameEntity entity in entities)
+		{
+			income += (entity as GameEntityBuilding).TypedData.IncomeValue;
+		}
+
+		SetMoney(GamePlayerData.Money + income);
+	}
 	#endregion
 
 	#region Building Buy Action
 	public void BeginBuildingBuy(BuildingData building)
 	{
+		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0)
+		{
+			return;
+		}
 
+		PlayerInterface.EnableShop(building, () => { SetState(GamePlayerState.Idle_ActivePlayer); });
+		SetState(GamePlayerState.BuildingBuyAction);
 	}
 	#endregion
 

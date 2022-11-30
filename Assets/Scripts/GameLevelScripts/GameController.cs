@@ -29,7 +29,7 @@ public class GameController : MonoBehaviour
 	public GameMatch StartMatch(int numberOfPlayers)
 	{
 		MatchData newMatchData = ScriptableObject.CreateInstance<MatchData>();
-		GameMatch newMatch = Instantiate(Resources.Load<GameMatch>("Prefabs/GameMatch"));
+		GameMatch newMatch = Instantiate(Resources.Load<GameMatch>("Prefabs/Game/GameMatch"));
 		newMatch.matchData = newMatchData;
 		CurrentGameMatch = newMatch;
 
@@ -37,11 +37,11 @@ public class GameController : MonoBehaviour
 
 		for (int i = 0; i < players.Length; i++)
 		{
-			players[i] = Instantiate(Resources.Load<GamePlayer>("Prefabs/GamePlayer"));
+			players[i] = Instantiate(Resources.Load<GamePlayer>("Prefabs/Game/GamePlayer"));
 			players[i].transform.parent = newMatch.transform;
 		}
 
-		newMatch.Initialize("TestMap", players, Instantiate(Resources.Load<GameMap>("Prefabs/GameMap")));
+		newMatch.Initialize("TestMap", players, Instantiate(Resources.Load<GameMap>("Prefabs/Game/GameMap")));
 
 		return newMatch;
 	}

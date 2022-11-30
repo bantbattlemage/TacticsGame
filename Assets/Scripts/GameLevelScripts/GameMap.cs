@@ -198,7 +198,7 @@ public class GameMap : MonoBehaviour
 		GameObject root = new GameObject();
 		root.name = "root";
 		root.transform.parent = transform;
-		GameObject basicTile = Resources.Load<GameObject>("Prefabs/Tile");
+		GameObject basicTile = Resources.Load<GameObject>("Prefabs/Game/Tile");
 
 		foreach (TileData tileData in activeMapData.MapTiles)
 		{

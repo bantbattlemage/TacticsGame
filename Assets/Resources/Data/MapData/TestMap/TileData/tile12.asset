@@ -15,4 +15,5 @@ MonoBehaviour:
   X: 1
   Y: 2
   Type: 0
-  Entities: []
+  Entities:
+  - {fileID: 11400000, guid: a2fd1485cfea1d340b69f22793a9c249, type: 2}

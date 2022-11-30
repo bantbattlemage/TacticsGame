@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using System.Linq;
+using UnityEngine.Events;
 
 public class PlayerUI : MonoBehaviour
 {
@@ -12,14 +13,18 @@ public class PlayerUI : MonoBehaviour
 	public PlayerTooltip Tooltip;
 	public PlayerTooltip TargetTooltip;
 	public ConfirmationBox ConfirmBox;
+	public ShopWindow Shop;
 
 	[HideInInspector]
 	public Camera PlayerGameCamera;
 
 	public TextMeshProUGUI PlayerName;
+	public TextMeshProUGUI PlayerMoney;
 	public TextMeshProUGUI RoundNumber;
 
 	public Button EndTurnButton;
+
+	public static int UI_LAYER = 5;
 
 	private string _playerName;
 	private RaycastHit _cachedMouseOver;
@@ -38,6 +43,7 @@ public class PlayerUI : MonoBehaviour
 		Tooltip.Initialize(player);
 		TargetTooltip.Initialize(player);
 		TargetTooltip.gameObject.SetActive(false);
+		Shop.gameObject.SetActive(false);
 	}
 
 	private void Update()
@@ -50,6 +56,26 @@ public class PlayerUI : MonoBehaviour
 		ProcessTooltip();
 		ProcessTargetTooltip();
 		ProcessMouseClick();
+	}
+
+	public void EnableShop(BuildingData building, UnityAction onCompleteAction)
+	{
+		Shop.gameObject.SetActive(true);
+		
+		List<UnitDefinition> availableUnits = new List<UnitDefinition>();
+
+		for(int i = 0; i < 10; i++)
+		{
+			availableUnits.Add(Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Regular"));
+		}
+
+		Shop.Initialize(onCompleteAction);
+		Shop.PopulateShop(availableUnits);
+	}
+
+	public void SetMoneyDisplay(int value)
+	{
+		PlayerMoney.text = value.ToString("C0");
 	}
 
 	public void SetLock(bool set)
@@ -124,7 +150,7 @@ public class PlayerUI : MonoBehaviour
 
 	private void ProcessTooltip()
 	{
-		if (_lockMouseOver)
+		if (_lockMouseOver || IsMouseOverInterface())
 		{
 			return;
 		}
@@ -149,7 +175,7 @@ public class PlayerUI : MonoBehaviour
 
 	private void ProcessTargetTooltip()
 	{
-		if (!TargetTooltip.gameObject.activeInHierarchy)
+		if (!TargetTooltip.gameObject.activeInHierarchy || IsMouseOverInterface())
 		{
 			return;
 		}
@@ -167,13 +193,13 @@ public class PlayerUI : MonoBehaviour
 		}
 	}
 
-	private bool IsMouseOverInterface()
+	public static bool IsMouseOverInterface()
 	{
 		PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
 		eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 		List<RaycastResult> results = new List<RaycastResult>();
 		EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
-		return results.Where(x => x.gameObject.layer == 5).Count() > 0;
+		return results.Where(x => x.gameObject.layer == UI_LAYER).Count() > 0;
 	}
 
 	public void UpdateDisplayInfo(int roundNumber)

@@ -6,6 +6,7 @@ using UnityEngine;
 public class BuildingData : GameEntityData
 {
 	public int RemainingBuyActions = 1;
+	public int IncomeValue { get { return TypedDefinition.BaseIncomeValue; } }
 
 	public override int RemainingActions
 	{

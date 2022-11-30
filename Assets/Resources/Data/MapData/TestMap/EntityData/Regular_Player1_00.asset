@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: Regular_Player1_00
   m_EditorClassIdentifier: 
   Definition: {fileID: 11400000, guid: e91962f453b465b4ca2aae14e553a644, type: 2}
-  Owner: 0
+  Owner: 1
   Location:
-    x: 1
-    y: 2
-  RemainingHealth: 10
-  RemainingMovement: 3
-  RemainingAttacks: 1
+    x: 5
+    y: 4
+  State: 0
+  RemainingHealth: 0
+  RemainingMovement: 0
+  RemainingAttacks: 0

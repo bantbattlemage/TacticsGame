@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: BuildingDefinition_HQ
   m_EditorClassIdentifier: 
   Prefab: {fileID: 4379241539801061471, guid: 739085eae109d6445b64023587decf01, type: 3}
+  BuildingType: 0
+  BaseBuyActions: 1
+  BaseIncomeValue: 1000
