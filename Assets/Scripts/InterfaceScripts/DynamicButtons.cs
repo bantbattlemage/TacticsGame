@@ -32,7 +32,7 @@ public static class DynamicButtons
 		button.GetComponentInChildren<TextMeshProUGUI>().text = "Buy";
 		button.onClick.AddListener(() =>
 		{
-			Debug.Log("beep");
+			GameController.Instance.CurrentGameMatch.GetActivePlayer().BeginBuildingBuy(buildingData);
 		});
 	}
 }

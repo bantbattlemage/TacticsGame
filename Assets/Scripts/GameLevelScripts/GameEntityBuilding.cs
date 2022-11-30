@@ -5,4 +5,19 @@ using UnityEngine;
 public class GameEntityBuilding : GameEntity
 {
 	public BuildingData TypedData { get { return Data as BuildingData; } }
+
+	public void SetRemainingBuyActions(int remainingActions)
+	{
+		if(remainingActions < 0)
+		{
+			remainingActions = 0;
+		}
+
+		if(remainingActions > TypedData.TypedDefinition.BaseBuyActions)
+		{
+			remainingActions = TypedData.TypedDefinition.BaseBuyActions;
+		}
+
+		TypedData.RemainingBuyActions= remainingActions;
+	}
 }

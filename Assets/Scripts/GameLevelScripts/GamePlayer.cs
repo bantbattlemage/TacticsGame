@@ -51,6 +51,7 @@ public class GamePlayer : MonoBehaviour
 		GamePlayerData.State = state;
 
 		PlayerInterface.EndTurnButton.gameObject.SetActive(state == GamePlayerState.Idle_ActivePlayer);
+
 		if(state == GamePlayerState.Idle_ActivePlayer)
 		{
 			PlayerInterface.SetLock(false);
@@ -64,9 +65,10 @@ public class GamePlayer : MonoBehaviour
 				switch (entity.Data.Definition.EntityType)
 				{
 					case GameEntityType.Unit:
-						(entity as GameEntityUnit).SetState(UnitState.InactivePlayerControlled);
+						(entity as GameEntityUnit).SetState(GameEntityState.InactivePlayerControlled);
 						break;
 					case GameEntityType.Building:
+						(entity as GameEntityBuilding).SetState(GameEntityState.InactivePlayerControlled);
 						break;
 				}
 			}
@@ -87,7 +89,7 @@ public class GamePlayer : MonoBehaviour
 			{
 				case GameEntityType.Unit:
 					UnitData unitData = entity.Data as UnitData;
-					unitData.RemainingHealth = unitData.TypedDefinition.BaseHealth;
+					(entity as GameEntityUnit).SetRemainingHealth(unitData.TypedDefinition.BaseHealth);
 					break;
 				case GameEntityType.Building:
 					BuildingData buildingData = entity.Data as BuildingData;
@@ -139,6 +141,13 @@ public class GamePlayer : MonoBehaviour
 		{
 			entity.RefreshEntity();
 		}
+	}
+	#endregion
+
+	#region Building Buy Action
+	public void BeginBuildingBuy(BuildingData building)
+	{
+
 	}
 	#endregion
 
@@ -394,9 +403,8 @@ public class GamePlayer : MonoBehaviour
 			throw new Exception(string.Format("attempted to move unit {0} greater than its remaining movement", unit.name));
 		}
 
-		unit.RemainingMovement -= points.Count;
+		(GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit).SetRemainingMovement(unit.RemainingMovement - points.Count);
 		GameController.Instance.CurrentGameMatch.Map.MoveEntity(unit, points);
-		(GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit).CheckRemainingActions();
 
 		foreach (Point p in points)
 		{
@@ -436,7 +444,7 @@ public class GamePlayer : MonoBehaviour
 		}
 
 		List<GameTile> tiles = new List<GameTile>();
-		int range = unit.BaseAttackRange;
+		int range = unit.TypedDefinition.BaseAttackRange;
 		_cachedMaxMoveDistance = range;
 
 		if (range <= 0)
@@ -612,14 +620,18 @@ public class GamePlayer : MonoBehaviour
 			throw new Exception(string.Format("attempted attack with unit {0} but it has no attacks left", unit.name));
 		}
 
-		unit.RemainingAttacks--;
-		target.RemainingHealth -= unit.BaseAttackDamage;
-		if(target.RemainingHealth <= 0)
+		GameEntityUnit gameUnit = (GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit);
+		GameEntityUnit targetGameUnit = (GameController.Instance.CurrentGameMatch.Map.GetEntity(target) as GameEntityUnit);
+
+		gameUnit.SetRemainingAttacks(unit.RemainingAttacks - 1);
+
+		int newTargetHealth = targetGameUnit.TypedData.RemainingHealth - unit.TypedDefinition.BaseAttackDamage;
+		if(newTargetHealth < 0)
 		{
-			target.RemainingHealth = 0;
+			newTargetHealth = 0;
 		}
 
-		(GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit).CheckRemainingActions();
+		targetGameUnit.SetRemainingHealth(newTargetHealth);
 
 		foreach (Point p in points)
 		{

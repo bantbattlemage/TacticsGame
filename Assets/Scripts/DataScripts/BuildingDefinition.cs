@@ -6,6 +6,8 @@ using UnityEngine;
 public class BuildingDefinition : GameDefinition
 {
 	public GameBuildingType BuildingType;
+	public int BaseBuyActions = 0;
+
 	public override GameDataType DataType => GameDataType.Entity;
 	public override GameEntityType EntityType => GameEntityType.Building;
 }

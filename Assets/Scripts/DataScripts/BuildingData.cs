@@ -5,6 +5,16 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "BuildingData", menuName = "ScriptableObjects/BuildingData", order = 1)]
 public class BuildingData : GameEntityData
 {
+	public int RemainingBuyActions = 1;
+
+	public override int RemainingActions
+	{
+		get 
+		{
+			return RemainingBuyActions; 
+		}
+	}
+
 	public BuildingDefinition TypedDefinition
 	{
 		get

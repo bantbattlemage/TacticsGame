@@ -7,66 +7,60 @@ public class GameEntityUnit : GameEntity
 {
 	public UnitData TypedData { get { return Data as UnitData; } }
 
-	public UnitState State
+	public void SetRemainingHealth(int value)
 	{
-		get
+		if (value < 0)
 		{
-			return TypedData.State;
+			value = 0;
+		}
+
+		if(value > TypedData.TypedDefinition.BaseHealth)
+		{
+			value = TypedData.TypedDefinition.BaseHealth;
+		}
+
+		TypedData.RemainingHealth = value;
+
+		if (TypedData.RemainingHealth == 0)
+		{
+			//SetState(UnitState.ActiveNoActionsAvailable);
 		}
 	}
 
-	public void SetState(UnitState state)
+	public void SetRemainingMovement(int value)
 	{
-		TypedData.State = state;
+		if (value < 0)
+		{
+			value = 0;
+		}
 
-		if(State == UnitState.ActiveNoActionsAvailable)
+		TypedData.RemainingMovement = value;
+
+		if (RemainingActions == 0)
 		{
-			GetComponentsInChildren<Renderer>().ToList().ForEach(x =>
-			{
-				Color greyedColor = x.material.GetColor("_Color");
-				greyedColor.r *= 0.33f;
-				greyedColor.g *= 0.33f;
-				greyedColor.b *= 0.33f;
-				x.material.SetColor("_Color", greyedColor);
-			});
-		}
-		else if(State == UnitState.InactivePlayerControlled)
-		{
-			SetPlayerColor();
-			GetComponentsInChildren<Renderer>().ToList().ForEach(x =>
-			{
-				Color greyedColor = x.material.GetColor("_Color");
-				greyedColor.r *= 0.75f;
-				greyedColor.g *= 0.75f;
-				greyedColor.b *= 0.75f;
-				x.material.SetColor("_Color", greyedColor);
-			});
-		}
-		else
-		{
-			SetPlayerColor();
+			SetState(GameEntityState.ActiveNoActionsAvailable);
 		}
 	}
 
-	public int CheckRemainingActions()
+	public void SetRemainingAttacks(int value)
 	{
-		int totalRemainingActions = 0;
-
-		totalRemainingActions += TypedData.RemainingAttacks;
-		totalRemainingActions += TypedData.RemainingMovement;
-
-		if(totalRemainingActions <= 0)
+		if(value < 0)
 		{
-			SetState(UnitState.ActiveNoActionsAvailable);
+			value = 0;
 		}
 
-		return totalRemainingActions;
+		TypedData.RemainingAttacks = value;
+
+		if(RemainingActions == 0)
+		{
+			SetState(GameEntityState.ActiveNoActionsAvailable);
+		}
 	}
 
 	public override void RefreshEntity()
 	{
-		TypedData.RemainingAttacks = TypedData.TypedDefinition.BaseNumberOfAttacks;
-		TypedData.RemainingMovement = TypedData.TypedDefinition.BaseMovement;
-		SetState(UnitState.ActiveAndReady);
+		SetRemainingAttacks(TypedData.TypedDefinition.BaseNumberOfAttacks);
+		SetRemainingMovement(TypedData.TypedDefinition.BaseMovement);
+		SetState(GameEntityState.ActiveAndReady);
 	}
 }
