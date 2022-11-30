@@ -20,4 +20,10 @@ public class GameEntityBuilding : GameEntity
 
 		TypedData.RemainingBuyActions= remainingActions;
 	}
+
+	public override void RefreshEntity()
+	{
+		SetRemainingBuyActions(TypedData.TypedDefinition.BaseBuyActions);
+		SetState(GameEntityState.ActiveAndReady);
+	}
 }

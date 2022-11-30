@@ -123,7 +123,7 @@ public class PlayerTooltip : MonoBehaviour
 						break;
 					case GameEntityType.Building:
 						BuildingData buildingData = data as BuildingData;
-						if (buildingData.Owner == _playerID)
+						if (buildingData.Owner == _playerID && buildingData.TypedDefinition.BuildingType == GameBuildingType.HQ)
 						{
 							DynamicButtons.HqBuyButton(ButtonOne, buildingData);
 						}

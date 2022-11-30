@@ -56,7 +56,7 @@ public class GameCamera : MonoBehaviour
 		}
 
 		//  zoom
-		if (Input.mouseScrollDelta.y != 0)
+		if (Input.mouseScrollDelta.y != 0 && !PlayerUI.IsMouseOverInterface())
 		{
 			transform.position += new Vector3(0, -(Input.mouseScrollDelta.y * scrollSensitivity), 0);
 		}

@@ -92,6 +92,6 @@ public class GameEntity : MonoBehaviour
 	/// </summary>
 	public virtual void RefreshEntity()
 	{
-
+		SetState(GameEntityState.ActiveAndReady);
 	}
 }

@@ -170,6 +170,9 @@ public class GamePlayer : MonoBehaviour
 	#endregion
 
 	#region Building Buy Action
+	/// <summary>
+	/// Enter a Building Buy Unit Action state
+	/// </summary>
 	public void BeginBuildingBuy(BuildingData building)
 	{
 		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0)

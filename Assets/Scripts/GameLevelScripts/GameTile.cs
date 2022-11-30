@@ -179,7 +179,7 @@ public class GameTile : MonoBehaviour
 
 	private void OnMouseEnter()
 	{
-		if (_locked)
+		if (_locked || PlayerUI.IsMouseOverInterface())
 		{
 			return;
 		}
@@ -191,8 +191,7 @@ public class GameTile : MonoBehaviour
 		}
 		else if (!HilightPlane.activeInHierarchy)
 		{
-			HilightPlane.SetActive(true);
-			HilightPlane.GetComponent<MeshRenderer>().material = HilightGreenMaterial;
+			HilightGreen();
 		}
 	}
 
