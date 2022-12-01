@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac65306a7be9f8c46a282cead4c0e716, type: 3}
   m_Name: BuildingDefinition_HQ
   m_EditorClassIdentifier: 
+  BaseHealth: 2
   Prefab: {fileID: 4379241539801061471, guid: 739085eae109d6445b64023587decf01, type: 3}
   BuildingType: 0
   BaseBuyActions: 1

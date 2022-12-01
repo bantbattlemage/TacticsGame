@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -121,6 +122,21 @@ public class PlayerTooltip : MonoBehaviour
 						{
 							DynamicButtons.UnitMoveButton(ButtonOne, unitData);
 							DynamicButtons.UnitAttackButton(ButtonTwo, unitData);
+
+							//	check if we need a Capture button
+							List<GameEntityData> tileEntities = GameController.Instance.CurrentGameMatch.Map.GetTile(unitData.Location).TileData.Entities.ToList();
+							try
+							{
+								BuildingData capturableBuilding = tileEntities.First(x => x.Definition.EntityType == GameEntityType.Building && x.Owner != _playerID) as BuildingData;
+								if (capturableBuilding != null)
+								{
+									DynamicButtons.UnitCaptureBuildingButton(ButtonThree, GameController.Instance.CurrentGameMatch.GetPlayer(_playerID), unitData, capturableBuilding);
+								}
+							}
+							catch
+							{
+								//	fail silently if there is no capturable building
+							}
 						}
 						break;
 					case GameEntityType.Building:

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff22e7237394f734383baf46619d96e2, type: 3}
   m_Name: UnitDefinition_Artillery
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 5370306762599958970, guid: ae6e7ce394055564399aec990a1c6f11, type: 3}
-  UnitType: 2
   BaseHealth: 3
+  Prefab: {fileID: 5370306762599958970, guid: e31e714462c953b499ceaa6010191411, type: 3}
+  UnitType: 2
   BaseMovement: 2
   BaseAttackRange: 4
   BaseNumberOfAttacks: 1

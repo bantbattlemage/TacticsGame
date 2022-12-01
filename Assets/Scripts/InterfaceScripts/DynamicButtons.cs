@@ -36,10 +36,40 @@ public static class DynamicButtons
 		});
 	}
 
+	/// <summary>
+	/// Create a Capture button used to capture a building in the same tile as the unit.
+	/// </summary>
+	public static void UnitCaptureBuildingButton(Button button, GamePlayer player, UnitData unit, BuildingData building)
+	{
+		button.gameObject.SetActive(true);
+		button.GetComponentInChildren<TextMeshProUGUI>().text = "Capture";
+
+		button.onClick.AddListener(() => 
+		{
+			if(unit.RemainingAttacks <= 0)
+			{
+				return;
+			}
+
+			player.ExecuteUnitBuildingCaptureAction(unit, building);
+			player.SetState(GamePlayerState.Idle_ActivePlayer);
+			player.PlayerInterface.EnableTargetTooltip(false);
+			player.PlayerInterface.ConfirmBox.Disable();
+		});
+	}
+
+	/// <summary>
+	/// Create a UnityAction used for a button that will perform a Move Unit action followed by a Capture Building action
+	/// </summary>
 	public static UnityAction UnitCaptureBuildingButton(GamePlayer player, UnitData unit, BuildingData building, List<Point> points)
 	{
 		return () =>
 		{
+			if (unit.RemainingAttacks <= 0)
+			{
+				return;
+			}
+
 			player.ExecuteUnitMoveAction(unit, points);
 			player.ExecuteUnitBuildingCaptureAction(unit, building);
 			player.SetState(GamePlayerState.Idle_ActivePlayer);
