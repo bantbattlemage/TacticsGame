@@ -64,23 +64,25 @@ public class PlayerTooltip : MonoBehaviour
 				content = tileData.Type.ToString();
 				break;
 			case GameDataType.Entity:
-				GameEntityData entityData = data as GameEntityData;
-				title = entityData.DataType.ToString();
-
+				GameEntityData entityData = data as GameEntityData;				
 				switch (entityData.Definition.EntityType)
 				{
 					case GameEntityType.Unit:
 						UnitData unitData = data as UnitData;
-						content = unitData.TypedDefinition.UnitType.ToString();
-						content += "\nOwner PlayerID: " + unitData.Owner.ToString();
+						title = unitData.TypedDefinition.UnitType.ToString();
+						content += "Owner PlayerID: " + unitData.Owner.ToString();
+						content += string.Format("\nHealth: {0}/{1}", unitData.RemainingHealth, unitData.TypedDefinition.BaseHealth);
 						content += string.Format("\nMovement: {0}/{1}", unitData.RemainingMovement, unitData.TypedDefinition.BaseMovement);
 						content += string.Format("\nAttacks: {0}/{1}", unitData.RemainingAttacks, unitData.TypedDefinition.BaseNumberOfAttacks);
-						content += string.Format("\nHealth: {0}/{1}", unitData.RemainingHealth, unitData.TypedDefinition.BaseHealth);
+						content += string.Format("\nAttack Damage: {0}", unitData.TypedDefinition.BaseAttackDamage);
+						content += string.Format("\nAttack Range: {0}", unitData.TypedDefinition.BaseAttackRange);
 						break;
 					case GameEntityType.Building:
 						BuildingData buildingData = data as BuildingData;
-						content = buildingData.TypedDefinition.BuildingType.ToString();
-						content += "\nOwner PlayerID: " + buildingData.Owner.ToString();
+						title = buildingData.TypedDefinition.BuildingType.ToString();
+						content += "Owner PlayerID: " + buildingData.Owner.ToString();
+						content += string.Format("\nHealth: {0}/{1}", buildingData.RemainingHealth, buildingData.TypedDefinition.BaseHealth);
+						content += string.Format("\nActions: {0}/{1}", buildingData.RemainingBuyActions, buildingData.TypedDefinition.BaseBuyActions);
 						break;
 					default:
 						Debug.LogWarning("invalid data on tooltip!");

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using UnityEditor;
 using UnityEngine;
+using static UnityEditor.FilePathAttribute;
 
 public class GameMap : MonoBehaviour
 {
@@ -26,16 +27,22 @@ public class GameMap : MonoBehaviour
 	public GameEntityUnit SpawnNewUnit(UnitDefinition unitToSpawn, Point location, GamePlayer owner)
 	{
 		GameEntityData newUnit = unitToSpawn.Instantiate();
-		newUnit.Owner = owner.GamePlayerData.ID;
-
 		GameTile tile = GetTile(location);
 
 		tile.AddEntity(newUnit);
 
 		GameEntityUnit newEntity = tile.SpawnEntity(newUnit) as GameEntityUnit;
 		newEntity.Initialize(newUnit, location);
+		newEntity.SetOwner(owner.GamePlayerData.ID);
 
 		return newEntity;
+	}
+
+	public void DestroyUnit(UnitData unitToDestroy)
+	{
+		GameTile tile = GetTile(unitToDestroy.Location);
+		tile.RemoveEntity(unitToDestroy);
+		Destroy(unitToDestroy);
 	}
 
 	public GameTile GetTile(Point location)

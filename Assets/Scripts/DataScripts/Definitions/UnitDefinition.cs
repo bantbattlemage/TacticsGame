@@ -13,7 +13,6 @@ public enum GameUnitType
 public class UnitDefinition : GameDefinition
 {
 	public GameUnitType UnitType;
-	public int BaseHealth;
 	public int BaseMovement;
 	public int BaseAttackRange;
 	public int BaseNumberOfAttacks;

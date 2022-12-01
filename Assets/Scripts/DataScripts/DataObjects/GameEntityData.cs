@@ -17,6 +17,8 @@ public class GameEntityData : GameData
 	public GameDefinition Definition;
 	public int Owner = GamePlayer.NEUTRAL_PLAYER_ID;
 	public Point Location;
+	public int RemainingHealth;
+
 	public virtual int RemainingActions { get { return 0; } }
 	public GameEntityState State;
 

@@ -1,7 +1,7 @@
-using System.Collections;
+using NesScripts.Controls.PathFind;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public static class DynamicButtons
@@ -34,5 +34,17 @@ public static class DynamicButtons
 		{
 			GameController.Instance.CurrentGameMatch.GetActivePlayer().BeginBuildingBuy(buildingData);
 		});
+	}
+
+	public static UnityAction UnitCaptureBuildingButton(GamePlayer player, UnitData unit, BuildingData building, List<Point> points)
+	{
+		return () =>
+		{
+			player.ExecuteUnitMoveAction(unit, points);
+			player.ExecuteUnitBuildingCaptureAction(unit, building);
+			player.SetState(GamePlayerState.Idle_ActivePlayer);
+			player.PlayerInterface.EnableTargetTooltip(false);
+			player.PlayerInterface.ConfirmBox.Disable();
+		};
 	}
 }

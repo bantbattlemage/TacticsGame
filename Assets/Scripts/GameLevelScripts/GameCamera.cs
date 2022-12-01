@@ -8,8 +8,8 @@ public class GameCamera : MonoBehaviour
 	private int maxZoomDistance = 100;
 	private float mousePanSensitivity = 0.1f;
 	private float scrollSensitivity = 5;
-	private float autoPanSensitivity = 0.005f;
-	private float maxPanDuration = 0.5f;
+	private float autoPanSensitivity = 0.05f;
+	private float maxPanDuration = 1f;
 
 	private bool isInitialized = false;
 	private Vector3 lastMousePosition;
@@ -34,7 +34,7 @@ public class GameCamera : MonoBehaviour
 			delta.Scale(new Vector2(autoPanSensitivity, autoPanSensitivity));
 			panDuration += Time.deltaTime;
 
-			if (ScrollTo(delta) || panDuration >= maxPanDuration)
+			if (PanTo(delta) || panDuration >= maxPanDuration)
 			{
 				panTarget = null;
 				ignoreInput = false;
@@ -44,15 +44,20 @@ public class GameCamera : MonoBehaviour
 
 		if (!isInitialized || !isActiveAndEnabled || ignoreInput)
 		{
+			if(panTarget != null && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2)))
+			{
+				panDuration += maxPanDuration;
+			}
+
 			return;
 		}
 
-		//  scroll
-		if (Input.GetMouseButton(2) && lastMousePosition != null)
+		//  pan
+		if ((Input.GetMouseButton(1) || Input.GetMouseButton(2)) && lastMousePosition != null)
 		{
 			Vector2 delta = new Vector2(lastMousePosition.x - Input.mousePosition.x, lastMousePosition.y - Input.mousePosition.y);
 			delta.Scale(new Vector2(mousePanSensitivity, mousePanSensitivity));
-			ScrollTo(delta);
+			PanTo(delta);
 		}
 
 		//  zoom
@@ -73,7 +78,7 @@ public class GameCamera : MonoBehaviour
 		lastMousePosition = Input.mousePosition;
 	}
 
-	private bool ScrollTo(Vector2 target)
+	private bool PanTo(Vector2 target)
 	{
 		bool[] bounded = new bool[2] { false, false };
 

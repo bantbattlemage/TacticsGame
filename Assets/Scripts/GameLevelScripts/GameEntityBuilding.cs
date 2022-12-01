@@ -6,6 +6,11 @@ public class GameEntityBuilding : GameEntity
 {
 	public BuildingData TypedData { get { return Data as BuildingData; } }
 
+	public override void SetRemainingHealth(int value)
+	{
+		base.SetRemainingHealth(value);
+	}
+
 	public void SetRemainingBuyActions(int remainingActions)
 	{
 		if(remainingActions < 0)

@@ -196,6 +196,7 @@ public class GamePlayer : MonoBehaviour
 		GameEntityBuilding building = GameController.Instance.CurrentGameMatch.Map.GetEntity(_activeSelectedBuilding) as GameEntityBuilding;
 
 		building.SetRemainingBuyActions(building.TypedData.RemainingBuyActions - 1);
+		SetMoney(GamePlayerData.Money - unitToBuy.BasePurchaseCost);
 
 		GameEntityUnit newUnit = GameController.Instance.CurrentGameMatch.Map.SpawnNewUnit(unitToBuy, building.TypedData.Location, this);
 
@@ -383,22 +384,14 @@ public class GamePlayer : MonoBehaviour
 			GameEntityData[] entities = sender.TileData.Entities;
 
 			//	moving into a tile with a capturable building
-			if (entities != null && entities.Length == 1 && entities[0].Definition.EntityType == GameEntityType.Building && entities[0].Owner != GamePlayerData.ID)
+			if (entities != null && entities.Length == 1 && entities[0].Definition.EntityType == GameEntityType.Building && entities[0].Owner != GamePlayerData.ID && _activeSelectedUnit.RemainingAttacks > 0)
 			{
 				UnityAction[] buttonActions = new UnityAction[3];
 				string[] buttonLabels = new string[] { "Capture", "Move", "Cancel" };
 				int cancelIndex = 2;
 
 				//	capture
-				buttonActions[0] = () => 
-				{
-					ExecuteUnitMoveAction(newUnitReference, newPoints);
-					ExecuteUnitBuildingCaptureAction(newUnitReference, entities[0] as BuildingData);
-
-					SetState(GamePlayerState.Idle_ActivePlayer);
-					PlayerInterface.EnableTargetTooltip(false);
-					PlayerInterface.ConfirmBox.Disable();
-				};
+				buttonActions[0] = DynamicButtons.UnitCaptureBuildingButton(this, newUnitReference, (BuildingData)entities[0], newPoints);
 				//	move
 				buttonActions[1] = () =>
 				{
@@ -451,7 +444,7 @@ public class GamePlayer : MonoBehaviour
 	/// <summary>
 	/// Move the given unit along the target path.
 	/// </summary>
-	private void ExecuteUnitMoveAction(UnitData unit, List<Point> points)
+	public void ExecuteUnitMoveAction(UnitData unit, List<Point> points)
 	{
 		if(points.Count > unit.RemainingMovement)
 		{
@@ -468,21 +461,36 @@ public class GamePlayer : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Capture the target building using the given unit.
+	/// Capture the target building using the given unit. Costs an Attack action to use.
 	/// </summary>
-	private void ExecuteUnitBuildingCaptureAction(UnitData unit, BuildingData building)
+	public void ExecuteUnitBuildingCaptureAction(UnitData unit, BuildingData building)
 	{
-		//	capture neutral building
-		if (building.Owner == NEUTRAL_PLAYER_ID)
+		if (unit.RemainingAttacks <= 0)
 		{
-			building.Owner = GamePlayerData.ID;
-			GameController.Instance.CurrentGameMatch.Map.GetEntity(building).SetPlayerColor();
+			throw new Exception(string.Format("attempted building capture with unit {0} but it has no attacks left", unit.name));
 		}
-		//	set other player's building to neutral
-		else
+
+		GameEntityUnit gameUnit = GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit;
+		GameEntityBuilding target = GameController.Instance.CurrentGameMatch.Map.GetEntity(building) as GameEntityBuilding;
+
+		gameUnit.SetRemainingAttacks(unit.RemainingAttacks - 1);
+		target.SetRemainingHealth(building.RemainingHealth - 1);
+
+		if(target.Data.RemainingHealth <= 0)
 		{
-			building.Owner = NEUTRAL_PLAYER_ID;
-			GameController.Instance.CurrentGameMatch.Map.GetEntity(building).SetPlayerColor();
+			//	capture neutral building
+			if (building.Owner == NEUTRAL_PLAYER_ID)
+			{
+				target.SetOwner(GamePlayerData.ID);
+			}
+			//	set other player's building to neutral
+			else
+			{
+				target.SetOwner(NEUTRAL_PLAYER_ID);
+			}
+
+			//	reset health of captured building
+			target.SetRemainingHealth(building.TypedDefinition.BaseHealth);
 		}
 	}
 	#endregion
