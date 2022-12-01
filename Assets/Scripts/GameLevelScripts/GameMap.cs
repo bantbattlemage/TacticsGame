@@ -1,12 +1,7 @@
 using NesScripts.Controls.PathFind;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml.Linq;
-using UnityEditor;
 using UnityEngine;
-using static UnityEditor.FilePathAttribute;
 
 public class GameMap : MonoBehaviour
 {

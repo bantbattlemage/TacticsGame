@@ -2,6 +2,7 @@ using UnityEngine;
 
 // entire gameObject will be destroyed while the game is being compiled.
 // This means any references to it will be null.
+[ExecuteInEditMode]
 public class RemovedDuringBuild : MonoBehaviour
 {
 #if UNITY_EDITOR

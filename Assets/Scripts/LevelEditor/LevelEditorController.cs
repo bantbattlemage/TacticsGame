@@ -1,12 +1,9 @@
 using NesScripts.Controls.PathFind;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-using UnityEngine.UIElements;
-
+#if UNITY_EDITOR
 [ExecuteInEditMode]
 public class LevelEditorController : RemovedDuringBuild
 {
@@ -185,3 +182,4 @@ public class LevelEditorController : RemovedDuringBuild
 		}
 	}
 }
+#endif
