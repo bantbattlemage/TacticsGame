@@ -176,7 +176,7 @@ public class GamePlayer : MonoBehaviour
 	/// </summary>
 	public void BeginBuildingBuy(BuildingData building)
 	{
-		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0)
+		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0 || GameController.Instance.CurrentGameMatch.Map.GetTile(building.Location).TileData.Entities.Length > 1)
 		{
 			return;
 		}
