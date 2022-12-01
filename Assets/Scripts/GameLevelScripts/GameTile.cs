@@ -68,7 +68,7 @@ public class GameTile : MonoBehaviour
 		TileData.Entities = entities.ToArray();
 	}
 
-	public void SpawnEntity(GameEntityData entityToSpawn)
+	public GameEntity SpawnEntity(GameEntityData entityToSpawn)
 	{
 		if (TileData.Entities.Contains(entityToSpawn))
 		{
@@ -77,10 +77,12 @@ public class GameTile : MonoBehaviour
 			newEntity.transform.localPosition = new Vector3(0, 0, 0);
 			entity.Initialize(entityToSpawn, new Point(TileData.X, TileData.Y));
 			SpawnedEntities.Add(entity);
+			return entity;
 		}
 		else
 		{
 			Debug.LogError("Entity is not in tile!");
+			return null;
 		}
 	}
 

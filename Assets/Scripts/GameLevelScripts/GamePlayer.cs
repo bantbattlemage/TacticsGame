@@ -20,6 +20,7 @@ public class GamePlayer : MonoBehaviour
 
 	private int _cachedMaxMoveDistance = 0;
 	private UnitData _activeSelectedUnit = null;
+	private BuildingData _activeSelectedBuilding = null;
 	private List<GameTile> _activeMoveTiles = new List<GameTile>();
 	private List<Point> _cachedPath = new List<Point>();
 
@@ -180,8 +181,28 @@ public class GamePlayer : MonoBehaviour
 			return;
 		}
 
-		PlayerInterface.EnableShop(building, () => { SetState(GamePlayerState.Idle_ActivePlayer); });
+		UnityAction onShopCompleteAction = () =>
+		{
+			SetState(GamePlayerState.Idle_ActivePlayer);
+		};
+
+		_activeSelectedBuilding = building;
+		PlayerInterface.EnableShop(building, onShopCompleteAction);
 		SetState(GamePlayerState.BuildingBuyAction);
+	}
+
+	public void ExecuteBuildingBuyAction(UnitDefinition unitToBuy)
+	{
+		GameEntityBuilding building = GameController.Instance.CurrentGameMatch.Map.GetEntity(_activeSelectedBuilding) as GameEntityBuilding;
+
+		building.SetRemainingBuyActions(building.TypedData.RemainingBuyActions - 1);
+
+		GameEntityUnit newUnit = GameController.Instance.CurrentGameMatch.Map.SpawnNewUnit(unitToBuy, building.TypedData.Location, this);
+
+		newUnit.RefreshEntity();
+		newUnit.SetState(GameEntityState.ActiveNoActionsAvailable);
+
+		SetState(GamePlayerState.Idle_ActivePlayer);
 	}
 	#endregion
 

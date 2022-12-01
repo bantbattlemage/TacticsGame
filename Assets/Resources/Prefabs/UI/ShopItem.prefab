@@ -401,6 +401,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce3dff09a3cb7234d9179335ffd67982, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ItemButton: {fileID: 3302300946542723219}
+  Name: {fileID: 6903066806984895181}
+  Cost: {fileID: 5881161407922754406}
+  PreviewImage: {fileID: 8093157120244999}
 --- !u!222 &194018726177028759
 CanvasRenderer:
   m_ObjectHideFlags: 0

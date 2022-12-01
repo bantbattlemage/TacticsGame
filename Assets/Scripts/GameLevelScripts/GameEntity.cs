@@ -27,6 +27,11 @@ public class GameEntity : MonoBehaviour
 
 	public virtual void SetState(GameEntityState state)
 	{
+		if(state == Data.State)
+		{
+			return;
+		}
+
 		Data.State = state;
 
 		if (State == GameEntityState.ActiveNoActionsAvailable)

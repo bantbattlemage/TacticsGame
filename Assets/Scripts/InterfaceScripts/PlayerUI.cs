@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine.EventSystems;
 using System.Linq;
 using UnityEngine.Events;
+using System;
 
 public class PlayerUI : MonoBehaviour
 {
@@ -44,6 +45,7 @@ public class PlayerUI : MonoBehaviour
 		TargetTooltip.Initialize(player);
 		TargetTooltip.gameObject.SetActive(false);
 		Shop.gameObject.SetActive(false);
+		Shop.ShopItemPurchaseRequest += OnShopItemPurchaseRequest;
 	}
 
 	private void Update()
@@ -61,16 +63,35 @@ public class PlayerUI : MonoBehaviour
 	public void EnableShop(BuildingData building, UnityAction onCompleteAction)
 	{
 		Shop.gameObject.SetActive(true);
-		
-		List<UnitDefinition> availableUnits = new List<UnitDefinition>();
 
-		for(int i = 0; i < 10; i++)
+		List<UnitDefinition> availableUnits = new List<UnitDefinition>();
+		switch (building.TypedDefinition.BuildingType)
 		{
-			availableUnits.Add(Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Regular"));
+			case GameBuildingType.HQ:
+				availableUnits = new List<UnitDefinition>
+				{
+					Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Regular"),
+					Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Artillery")
+				};
+				break;
 		}
 
 		Shop.Initialize(onCompleteAction);
 		Shop.PopulateShop(availableUnits);
+	}
+
+	private void OnShopItemPurchaseRequest(ShopItem sender)
+	{
+		GamePlayer player = GameController.Instance.CurrentGameMatch.GetPlayer(_playerId);
+
+		if(player.GamePlayerData.Money < sender.DisplayedUnit.BasePurchaseCost)
+		{
+			Debug.LogWarning("attempted to purchase item without enough money");
+			return;
+		}
+
+		player.ExecuteBuildingBuyAction(sender.DisplayedUnit);
+		Shop.DisableShop();
 	}
 
 	public void SetMoneyDisplay(int value)

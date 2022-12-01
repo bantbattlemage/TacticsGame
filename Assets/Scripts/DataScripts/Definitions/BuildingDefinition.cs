@@ -2,6 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum GameBuildingType
+{
+	HQ,
+	City,
+	Barracks
+}
+
 [CreateAssetMenu(fileName = "BuildingDefinition", menuName = "ScriptableObjects/BuildingDefinition", order = 1)]
 public class BuildingDefinition : GameDefinition
 {

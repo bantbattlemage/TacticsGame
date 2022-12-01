@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff22e7237394f734383baf46619d96e2, type: 3}
-  m_Name: UnitDefinition_Regular
+  m_Name: UnitDefinition_Artillery
   m_EditorClassIdentifier: 
   Prefab: {fileID: 5370306762599958970, guid: ae6e7ce394055564399aec990a1c6f11, type: 3}
-  UnitType: 1
-  BaseHealth: 5
+  UnitType: 2
+  BaseHealth: 3
   BaseMovement: 2
-  BaseAttackRange: 1
+  BaseAttackRange: 4
   BaseNumberOfAttacks: 1
   BaseAttackDamage: 3
-  BasePurchaseCost: 1000
+  BasePurchaseCost: 2000

@@ -1,3 +1,4 @@
+using NesScripts.Controls.PathFind;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,24 @@ using UnityEngine;
 public class GameEntityUnit : GameEntity
 {
 	public UnitData TypedData { get { return Data as UnitData; } }
+
+	public override void Initialize(GameEntityData data, Point location)
+	{
+		base.Initialize(data, location);
+
+		SetRemainingHealth((data as UnitData).TypedDefinition.BaseHealth);
+	}
+
+	public override void SetState(GameEntityState state)
+	{
+		base.SetState(state);
+
+		if(state == GameEntityState.ActiveNoActionsAvailable)
+		{
+			SetRemainingAttacks(0);
+			SetRemainingMovement(0);
+		}
+	}
 
 	public void SetRemainingHealth(int value)
 	{
@@ -36,7 +55,7 @@ public class GameEntityUnit : GameEntity
 
 		TypedData.RemainingMovement = value;
 
-		if (RemainingActions == 0)
+		if (RemainingActions == 0 && State != GameEntityState.ActiveNoActionsAvailable)
 		{
 			SetState(GameEntityState.ActiveNoActionsAvailable);
 		}
@@ -51,7 +70,7 @@ public class GameEntityUnit : GameEntity
 
 		TypedData.RemainingAttacks = value;
 
-		if(RemainingActions == 0)
+		if(RemainingActions == 0 && State != GameEntityState.ActiveNoActionsAvailable)
 		{
 			SetState(GameEntityState.ActiveNoActionsAvailable);
 		}

@@ -23,6 +23,26 @@ public class GameMap : MonoBehaviour
 		}
 	}
 
+	public GameEntityUnit SpawnNewUnit(UnitDefinition unitToSpawn, Point location, GamePlayer owner)
+	{
+		GameEntityData newUnit = unitToSpawn.Instantiate();
+		newUnit.Owner = owner.GamePlayerData.ID;
+
+		GameTile tile = GetTile(location);
+
+		tile.AddEntity(newUnit);
+
+		GameEntityUnit newEntity = tile.SpawnEntity(newUnit) as GameEntityUnit;
+		newEntity.Initialize(newUnit, location);
+
+		return newEntity;
+	}
+
+	public GameTile GetTile(Point location)
+	{
+		return GetTile(location.x, location.y);
+	}
+
 	public GameTile GetTile(int x, int y)
 	{
 		if (x >= 0 && x < activeTiles.GetLength(0) && y >= 0 && y < activeTiles.GetLength(1))

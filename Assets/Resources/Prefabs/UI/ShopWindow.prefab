@@ -498,6 +498,9 @@ MonoBehaviour:
   ShopItemPrefab: {fileID: 8754760441884487381, guid: 20555af82e97b3348a0f8a4a9ada4387, type: 3}
   ContentRoot: {fileID: 2679358258819463700}
   CloseButton: {fileID: 8572105351203374385}
+  PurchaseButton: {fileID: 7675376261734973595}
+  SelectionInfo: {fileID: 8806233585989374923}
+  InfoTextBody: {fileID: 3306379436685530434}
 --- !u!222 &230902827683581796
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -653,8 +656,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 8188696290433652788}
   m_HandleRect: {fileID: 7781818598357636780}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 1
+  m_Value: 0
+  m_Size: 0.9998981
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1806,7 +1809,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000030517578}
   m_SizeDelta: {x: 400, y: 600}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &9217184192871621429
