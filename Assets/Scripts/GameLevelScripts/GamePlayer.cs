@@ -59,7 +59,7 @@ public class GamePlayer : MonoBehaviour
 		}
 		else if(state == GamePlayerState.Idle_InactivePlayer)
 		{
-			List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID);
+			List<GameEntity> entities = GameMap.Instance.GetAllPlayerEntities(GamePlayerData.ID);
 
 			foreach(GameEntity entity in entities)
 			{
@@ -93,7 +93,7 @@ public class GamePlayer : MonoBehaviour
 	/// </summary>
 	public void InitializePlayerEntities()
 	{
-		List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID);
+		List<GameEntity> entities = GameMap.Instance.GetAllPlayerEntities(GamePlayerData.ID);
 
 		foreach (GameEntity entity in entities)
 		{
@@ -124,7 +124,7 @@ public class GamePlayer : MonoBehaviour
 		RefreshAllPlayerEntities();
 		CollectBuildingIncome();
 
-		GameTile hqTile = GameController.Instance.CurrentGameMatch.Map.GetPlayerHQ(GamePlayerData.ID);
+		GameTile hqTile = GameMap.Instance.GetPlayerHQ(GamePlayerData.ID);
 		if (hqTile != null)
 		{
 			PlayerCamera.PanTo(hqTile.transform);
@@ -148,7 +148,7 @@ public class GamePlayer : MonoBehaviour
 	/// </summary>
 	public void RefreshAllPlayerEntities()
 	{
-		List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID);
+		List<GameEntity> entities = GameMap.Instance.GetAllPlayerEntities(GamePlayerData.ID);
 
 		foreach (GameEntity entity in entities)
 		{
@@ -158,7 +158,7 @@ public class GamePlayer : MonoBehaviour
 
 	public void CollectBuildingIncome()
 	{
-		List<GameEntity> entities = GameController.Instance.CurrentGameMatch.Map.GetAllPlayerEntities(GamePlayerData.ID).Where(x => x.Data.Definition.EntityType == GameEntityType.Building).ToList();
+		List<GameEntity> entities = GameMap.Instance.GetAllPlayerEntities(GamePlayerData.ID).Where(x => x.Data.Definition.EntityType == GameEntityType.Building).ToList();
 		int income = 0;
 
 		foreach (GameEntity entity in entities)
@@ -176,7 +176,7 @@ public class GamePlayer : MonoBehaviour
 	/// </summary>
 	public void BeginBuildingBuy(BuildingData building)
 	{
-		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0 || GameController.Instance.CurrentGameMatch.Map.GetTile(building.Location).TileData.Entities.Length > 1)
+		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0 || GameMap.Instance.GetTile(building.Location).TileData.Entities.Length > 1)
 		{
 			return;
 		}
@@ -193,12 +193,12 @@ public class GamePlayer : MonoBehaviour
 
 	public void ExecuteBuildingBuyAction(UnitDefinition unitToBuy)
 	{
-		GameEntityBuilding building = GameController.Instance.CurrentGameMatch.Map.GetEntity(_activeSelectedBuilding) as GameEntityBuilding;
+		GameEntityBuilding building = GameMap.Instance.GetEntity(_activeSelectedBuilding) as GameEntityBuilding;
 
 		building.SetRemainingBuyActions(building.TypedData.RemainingBuyActions - 1);
 		SetMoney(GamePlayerData.Money - unitToBuy.BasePurchaseCost);
 
-		GameEntityUnit newUnit = GameController.Instance.CurrentGameMatch.Map.SpawnNewUnit(unitToBuy, building.TypedData.Location, this);
+		GameEntityUnit newUnit = GameMap.Instance.SpawnNewUnit(unitToBuy, building.TypedData.Location, this);
 
 		newUnit.RefreshEntity();
 		newUnit.SetState(GameEntityState.ActiveNoActionsAvailable);
@@ -239,7 +239,7 @@ public class GamePlayer : MonoBehaviour
 					continue;
 				}
 
-				GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile(target.x, target.y);
+				GameTile tile = GameMap.Instance.GetTile(target.x, target.y);
 
 				bool validate = true;
 
@@ -333,11 +333,11 @@ public class GamePlayer : MonoBehaviour
 		Point from = new Point(_activeSelectedUnit.Location.x, _activeSelectedUnit.Location.y);
 		Point to = new Point(sender.TileData.X, sender.TileData.Y);
 
-		_cachedPath = GameController.Instance.CurrentGameMatch.Map.FindPath(from, to, _activeMoveTiles);
+		_cachedPath = GameMap.Instance.FindPath(from, to, _activeMoveTiles);
 
 		foreach (Point p in _cachedPath)
 		{
-			GameTile t = GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y);
+			GameTile t = GameMap.Instance.GetTile(p.x, p.y);
 
 			if (t != null)
 			{
@@ -375,7 +375,7 @@ public class GamePlayer : MonoBehaviour
 
 			foreach (Point p in _cachedPath)
 			{
-				GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).LockTile();
+				GameMap.Instance.GetTile(p.x, p.y).LockTile();
 			}
 
 			UnitData newUnitReference = _activeSelectedUnit;
@@ -408,7 +408,7 @@ public class GamePlayer : MonoBehaviour
 					PlayerInterface.ConfirmBox.Disable();
 					foreach (Point p in newPoints)
 					{
-						GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+						GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
 					}
 				};
 
@@ -432,7 +432,7 @@ public class GamePlayer : MonoBehaviour
 					PlayerInterface.EnableTargetTooltip(false);
 					foreach (Point p in newPoints)
 					{
-						GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+						GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
 					}
 				});
 			}
@@ -451,12 +451,12 @@ public class GamePlayer : MonoBehaviour
 			throw new Exception(string.Format("attempted to move unit {0} greater than its remaining movement", unit.name));
 		}
 
-		(GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit).SetRemainingMovement(unit.RemainingMovement - points.Count);
-		GameController.Instance.CurrentGameMatch.Map.MoveEntity(unit, points);
+		(GameMap.Instance.GetEntity(unit) as GameEntityUnit).SetRemainingMovement(unit.RemainingMovement - points.Count);
+		GameMap.Instance.MoveEntity(unit, points);
 
 		foreach (Point p in points)
 		{
-			GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+			GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
 		}
 	}
 
@@ -470,8 +470,8 @@ public class GamePlayer : MonoBehaviour
 			throw new Exception(string.Format("attempted building capture with unit {0} but it has no attacks left", unit.name));
 		}
 
-		GameEntityUnit gameUnit = GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit;
-		GameEntityBuilding target = GameController.Instance.CurrentGameMatch.Map.GetEntity(building) as GameEntityBuilding;
+		GameEntityUnit gameUnit = GameMap.Instance.GetEntity(unit) as GameEntityUnit;
+		GameEntityBuilding target = GameMap.Instance.GetEntity(building) as GameEntityBuilding;
 
 		gameUnit.SetRemainingAttacks(unit.RemainingAttacks - 1);
 		target.SetRemainingHealth(building.RemainingHealth - 1);
@@ -527,7 +527,7 @@ public class GamePlayer : MonoBehaviour
 					continue;
 				}
 
-				GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile(target.x, target.y);
+				GameTile tile = GameMap.Instance.GetTile(target.x, target.y);
 
 				if (tile != null)
 				{
@@ -565,11 +565,11 @@ public class GamePlayer : MonoBehaviour
 		Point from = new Point(_activeSelectedUnit.Location.x, _activeSelectedUnit.Location.y);
 		Point to = new Point(sender.TileData.X, sender.TileData.Y);
 
-		_cachedPath = GameController.Instance.CurrentGameMatch.Map.FindPath(from, to, _activeMoveTiles);
+		_cachedPath = GameMap.Instance.FindPath(from, to, _activeMoveTiles);
 
 		foreach (Point p in _cachedPath)
 		{
-			GameTile tile = GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y);
+			GameTile tile = GameMap.Instance.GetTile(p.x, p.y);
 
 			if (tile != null)
 			{
@@ -636,7 +636,7 @@ public class GamePlayer : MonoBehaviour
 
 			if (target != null)
 			{
-				GameController.Instance.CurrentGameMatch.Map.GetTile(_cachedPath.Last().x, _cachedPath.Last().y).LockTile();
+				GameMap.Instance.GetTile(_cachedPath.Last().x, _cachedPath.Last().y).LockTile();
 				UnitData newUnitReference = _activeSelectedUnit;
 				List<Point> newPoints = new List<Point>() { _cachedPath.Last() };
 
@@ -656,7 +656,7 @@ public class GamePlayer : MonoBehaviour
 
 					foreach (Point p in newPoints)
 					{
-						GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+						GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
 					}
 				});
 
@@ -683,8 +683,8 @@ public class GamePlayer : MonoBehaviour
 			throw new Exception(string.Format("attempted attack with unit {0} but it has no attacks left", unit.name));
 		}
 
-		GameEntityUnit gameUnit = (GameController.Instance.CurrentGameMatch.Map.GetEntity(unit) as GameEntityUnit);
-		GameEntityUnit targetGameUnit = (GameController.Instance.CurrentGameMatch.Map.GetEntity(target) as GameEntityUnit);
+		GameEntityUnit gameUnit = (GameMap.Instance.GetEntity(unit) as GameEntityUnit);
+		GameEntityUnit targetGameUnit = (GameMap.Instance.GetEntity(target) as GameEntityUnit);
 
 		gameUnit.SetRemainingAttacks(unit.RemainingAttacks - 1);
 
@@ -698,7 +698,7 @@ public class GamePlayer : MonoBehaviour
 
 		foreach (Point p in points)
 		{
-			GameController.Instance.CurrentGameMatch.Map.GetTile(p.x, p.y).UnlockTile();
+			GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
 		}
 	}
 	#endregion

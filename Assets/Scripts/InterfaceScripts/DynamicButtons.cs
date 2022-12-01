@@ -12,7 +12,7 @@ public static class DynamicButtons
 		button.GetComponentInChildren<TextMeshProUGUI>().text = "Move";
 		button.onClick.AddListener(() =>
 		{
-			GameController.Instance.CurrentGameMatch.GetActivePlayer().BeginUnitMove(unitData);
+			GameMatch.Instance.GetActivePlayer().BeginUnitMove(unitData);
 		});
 	}
 
@@ -22,7 +22,7 @@ public static class DynamicButtons
 		button.GetComponentInChildren<TextMeshProUGUI>().text = "Attack";
 		button.onClick.AddListener(() =>
 		{
-			GameController.Instance.CurrentGameMatch.GetActivePlayer().BeginUnitAttack(unitData);
+			GameMatch.Instance.GetActivePlayer().BeginUnitAttack(unitData);
 		});
 	}
 
@@ -32,7 +32,7 @@ public static class DynamicButtons
 		button.GetComponentInChildren<TextMeshProUGUI>().text = "Buy";
 		button.onClick.AddListener(() =>
 		{
-			GameController.Instance.CurrentGameMatch.GetActivePlayer().BeginBuildingBuy(buildingData);
+			GameMatch.Instance.GetActivePlayer().BeginBuildingBuy(buildingData);
 		});
 	}
 

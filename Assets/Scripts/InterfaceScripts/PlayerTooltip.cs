@@ -124,13 +124,13 @@ public class PlayerTooltip : MonoBehaviour
 							DynamicButtons.UnitAttackButton(ButtonTwo, unitData);
 
 							//	check if we need a Capture button
-							List<GameEntityData> tileEntities = GameController.Instance.CurrentGameMatch.Map.GetTile(unitData.Location).TileData.Entities.ToList();
+							List<GameEntityData> tileEntities = GameMap.Instance.GetTile(unitData.Location).TileData.Entities.ToList();
 							try
 							{
 								BuildingData capturableBuilding = tileEntities.First(x => x.Definition.EntityType == GameEntityType.Building && x.Owner != _playerID) as BuildingData;
 								if (capturableBuilding != null)
 								{
-									DynamicButtons.UnitCaptureBuildingButton(ButtonThree, GameController.Instance.CurrentGameMatch.GetPlayer(_playerID), unitData, capturableBuilding);
+									DynamicButtons.UnitCaptureBuildingButton(ButtonThree, GameMatch.Instance.GetPlayer(_playerID), unitData, capturableBuilding);
 								}
 							}
 							catch

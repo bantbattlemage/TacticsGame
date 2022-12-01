@@ -84,7 +84,7 @@ public class GameMap : MonoBehaviour
 	/// </summary>
 	public static List<GameTile> FilterTilesByDistance(List<GameTile> tiles, Point startPoint, int distance)
 	{
-		bool[,] tilesMap = new bool[(int)GameController.Instance.CurrentGameMatch.Map.MapSize.x, (int)GameController.Instance.CurrentGameMatch.Map.MapSize.y];
+		bool[,] tilesMap = new bool[(int)Instance.MapSize.x, (int)Instance.MapSize.y];
 		for (int x = 0; x < tilesMap.GetLength(0); x++)
 		{
 			for (int y = 0; y < tilesMap.GetLength(1); y++)
@@ -250,6 +250,14 @@ public class GameMap : MonoBehaviour
 
 			newlyInstantiatedTile.name = string.Format("{0},{1}", activeData.X, activeData.Y);
 			activeTiles[activeData.X, activeData.Y] = tile;
+		}
+	}
+
+	public static GameMap Instance
+	{
+		get
+		{
+			return GameMatch.Instance.Map;
 		}
 	}
 }

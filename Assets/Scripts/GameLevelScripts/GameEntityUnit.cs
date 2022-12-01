@@ -19,7 +19,7 @@ public class GameEntityUnit : GameEntity
 
 		if (TypedData.RemainingHealth <= 0)
 		{
-			GameController.Instance.CurrentGameMatch.Map.DestroyUnit(TypedData);
+			GameMap.Instance.DestroyUnit(TypedData);
 		}
 	}
 

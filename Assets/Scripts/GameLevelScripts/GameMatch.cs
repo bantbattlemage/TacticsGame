@@ -79,4 +79,12 @@ public class GameMatch : MonoBehaviour
 
 		Players[playerID].BeginTurn(matchData.CurrentRound);
 	}
+
+	public static GameMatch Instance
+	{
+		get
+		{
+			return GameController.Instance.CurrentGameMatch;
+		}
+	}
 }

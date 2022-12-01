@@ -82,7 +82,7 @@ public class PlayerUI : MonoBehaviour
 
 	private void OnShopItemPurchaseRequest(ShopItem sender)
 	{
-		GamePlayer player = GameController.Instance.CurrentGameMatch.GetPlayer(_playerId);
+		GamePlayer player = GameMatch.Instance.GetPlayer(_playerId);
 
 		if(player.GamePlayerData.Money < sender.DisplayedUnit.BasePurchaseCost)
 		{
@@ -125,7 +125,7 @@ public class PlayerUI : MonoBehaviour
 	{
 		Tooltip.Deselect();
 
-		if (!GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsUsingUnitAction)
+		if (!GameMatch.Instance.GetPlayer(_playerId).IsUsingUnitAction)
 		{
 			TargetTooltip.LockMouseOver(false);
 			TargetTooltip.gameObject.SetActive(false);
@@ -136,7 +136,7 @@ public class PlayerUI : MonoBehaviour
 	{
 		if (IsMouseOverInterface() || _lockMouseOver)
 		{
-			if (!IsMouseOverInterface() && _lockMouseOver && !GameController.Instance.CurrentGameMatch.GetPlayer(_playerId).IsUsingUnitAction && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
+			if (!IsMouseOverInterface() && _lockMouseOver && !GameMatch.Instance.GetPlayer(_playerId).IsUsingUnitAction && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
 			{
 				_lockMouseOver = false;
 				DeselectEntity();
