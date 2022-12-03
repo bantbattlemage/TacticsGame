@@ -10,7 +10,9 @@ public enum GamePlayerState
 	Idle_ActivePlayer,
 	UnitMoveAction,
 	UnitAttackAction,
-	BuildingBuyAction
+	BuildingBuyAction,
+	GameOverLosingPlayer,
+	GameOverWinningPlayer
 }
 
 [CreateAssetMenu(fileName = "PlayerData", menuName = "ScriptableObjects/PlayerData", order = 1)]

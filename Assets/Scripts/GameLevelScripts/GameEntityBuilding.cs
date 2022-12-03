@@ -6,24 +6,25 @@ public class GameEntityBuilding : GameEntity
 {
 	public BuildingData TypedData { get { return Data as BuildingData; } }
 
+	public override int RemainingActions
+	{
+		get { return TypedData.RemainingBuyActions; }
+	}
+
 	public override void SetRemainingHealth(int value)
 	{
 		base.SetRemainingHealth(value);
 	}
 
-	public void SetRemainingBuyActions(int remainingActions)
+	public void SetRemainingBuyActions(int value)
 	{
-		if(remainingActions < 0)
+		if(value < 0)
 		{
-			remainingActions = 0;
+			value = 0;
 		}
 
-		if(remainingActions > TypedData.TypedDefinition.BaseBuyActions)
-		{
-			remainingActions = TypedData.TypedDefinition.BaseBuyActions;
-		}
-
-		TypedData.RemainingBuyActions= remainingActions;
+		TypedData.RemainingBuyActions = value;
+		CheckRemainingActions();
 	}
 
 	public override void RefreshEntity()

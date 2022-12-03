@@ -17,7 +17,7 @@ MonoBehaviour:
   Location:
     x: 5
     y: 4
+  RemainingHealth: 5
   State: 0
-  RemainingHealth: 0
   RemainingMovement: 0
   RemainingAttacks: 0

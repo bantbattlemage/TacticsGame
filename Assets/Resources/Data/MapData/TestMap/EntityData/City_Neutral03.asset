@@ -9,15 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d33b332cfc0bfcf478cd2a1675ce249c, type: 3}
-  m_Name: Commander_Player0
+  m_Script: {fileID: 11500000, guid: 88cca42de8359e744be61a321eb7601f, type: 3}
+  m_Name: City_Neutral03
   m_EditorClassIdentifier: 
-  Definition: {fileID: 11400000, guid: 50f8c7f895153ad439e5f706aa5fc0dd, type: 2}
-  Owner: 0
+  Definition: {fileID: 11400000, guid: 95998692de3a1574d91e65cd98774f55, type: 2}
+  Owner: -1
   Location:
-    x: 1
-    y: 1
-  RemainingHealth: 10
+    x: 2
+    y: 2
+  RemainingHealth: 1
   State: 0
-  RemainingMovement: 0
-  RemainingAttacks: 0
+  RemainingBuyActions: 0

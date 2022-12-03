@@ -68,12 +68,15 @@ public class PlayerUI : MonoBehaviour
 		switch (building.TypedDefinition.BuildingType)
 		{
 			case GameBuildingType.HQ:
+			case GameBuildingType.Barracks:
 				availableUnits = new List<UnitDefinition>
 				{
 					Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Regular"),
 					Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Artillery")
 				};
 				break;
+			default:
+				throw new Exception("invalid building type for shop!");
 		}
 
 		Shop.Initialize(onCompleteAction);

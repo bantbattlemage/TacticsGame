@@ -24,6 +24,7 @@ public class GameEntity : MonoBehaviour
 		Data.Location = location;
 		SetPlayerColor();
 		SetRemainingHealth(data.Definition.BaseHealth);
+		CheckRemainingActions();
 	}
 
 	public virtual void SetOwner(int playerID)
@@ -114,6 +115,21 @@ public class GameEntity : MonoBehaviour
 				greyedColor.b *= 0.75f;
 				x.material.SetColor("_Color", greyedColor);
 			});
+		}
+	}
+
+	public virtual void CheckRemainingActions()
+	{
+		if (RemainingActions == 0 && Data.Owner != -1)
+		{
+			if (State != GameEntityState.ActiveNoActionsAvailable)
+			{
+				SetState(GameEntityState.ActiveNoActionsAvailable);
+			}
+			else
+			{
+				SetPlayerColor();
+			}
 		}
 	}
 

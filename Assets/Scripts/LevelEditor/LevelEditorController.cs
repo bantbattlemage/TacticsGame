@@ -59,6 +59,12 @@ public class LevelEditorController : MonoBehaviour
 
 	private void SaveMap()
 	{
+		if(LoadedTiles == null || LoadedTiles.Length == 0)
+		{
+			Debug.LogWarning("No tiles loaded");
+			return;
+		}
+
 		string name = Name;
 		AssetDatabase.DeleteAsset("Assets/" + name);
 		AssetDatabase.CreateFolder("Assets", name);

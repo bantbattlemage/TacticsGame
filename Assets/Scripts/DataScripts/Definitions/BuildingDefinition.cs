@@ -18,4 +18,12 @@ public class BuildingDefinition : GameDefinition
 
 	public override GameDataType DataType => GameDataType.Entity;
 	public override GameEntityType EntityType => GameEntityType.Building;
+
+	public static List<GameBuildingType> ShopBuildings
+	{
+		get
+		{
+			return new List<GameBuildingType> { GameBuildingType.HQ, GameBuildingType.Barracks };
+		}
+	}
 }

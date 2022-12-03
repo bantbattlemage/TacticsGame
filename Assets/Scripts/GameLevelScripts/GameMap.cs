@@ -11,6 +11,12 @@ public class GameMap : MonoBehaviour
 
 	public static int TileSize = 10;
 
+	public delegate void GameMapEvent(GameEntityData entityData, GameTile tile);
+	public GameMapEvent UnitSpawnedEvent;
+	public GameMapEvent UnitDestroyedEvent;
+	public GameMapEvent UnitMovedEvent;
+	public GameMapEvent BuildingOwnerChangedEvent;
+
 	public Vector2 MapSize
 	{
 		get
@@ -30,6 +36,11 @@ public class GameMap : MonoBehaviour
 		newEntity.Initialize(newUnit, location);
 		newEntity.SetOwner(owner.GamePlayerData.ID);
 
+		if(UnitSpawnedEvent != null)
+		{
+			UnitSpawnedEvent(newUnit, tile);
+		}
+
 		return newEntity;
 	}
 
@@ -37,6 +48,12 @@ public class GameMap : MonoBehaviour
 	{
 		GameTile tile = GetTile(unitToDestroy.Location);
 		tile.RemoveEntity(unitToDestroy);
+
+		if (UnitDestroyedEvent != null)
+		{
+			UnitDestroyedEvent(unitToDestroy, tile);
+		}
+
 		Destroy(unitToDestroy);
 	}
 
@@ -139,6 +156,42 @@ public class GameMap : MonoBehaviour
 		return entity;
 	}
 
+	public List<GameEntityUnit> GetAllPlayerUnitEntities(int playerId)
+	{
+		List<GameEntityUnit> gameEntities = new List<GameEntityUnit>();
+
+		foreach (GameTile tile in activeTiles)
+		{
+			foreach (GameEntity e in tile.SpawnedEntities)
+			{
+				if (e.Data.Owner == playerId && e.Data.Definition.EntityType == GameEntityType.Unit)
+				{
+					gameEntities.Add(e as GameEntityUnit);
+				}
+			}
+		}
+
+		return gameEntities;
+	}
+
+	public List<GameEntityBuilding> GetAllPlayerBuildingEntities(int playerId)
+	{
+		List<GameEntityBuilding> gameEntities = new List<GameEntityBuilding>();
+
+		foreach (GameTile tile in activeTiles)
+		{
+			foreach (GameEntity e in tile.SpawnedEntities)
+			{
+				if (e.Data.Owner == playerId && e.Data.Definition.EntityType == GameEntityType.Building)
+				{
+					gameEntities.Add(e as GameEntityBuilding);
+				}
+			}
+		}
+
+		return gameEntities;
+	}
+
 	public List<GameEntity> GetAllPlayerEntities(int playerId)
 	{
 		List<GameEntity> gameEntities = new List<GameEntity>();
@@ -171,7 +224,7 @@ public class GameMap : MonoBehaviour
 					{
 						foreach (BuildingData buildingData in tile.Entities)
 						{
-							if (buildingData.Owner == playerId && buildingData.TypedDefinition.BuildingType == GameBuildingType.HQ)
+							if (buildingData.Owner == playerId && BuildingDefinition.ShopBuildings.Contains(buildingData.TypedDefinition.BuildingType))
 							{
 								return activeTiles[x, y];
 							}
@@ -196,6 +249,11 @@ public class GameMap : MonoBehaviour
 		startTile.RemoveEntity(entity);
 		finalTile.AddEntity(entity);
 		finalTile.SpawnEntity(entity);
+
+		if(UnitMovedEvent != null)
+		{
+			UnitMovedEvent(entity, finalTile);
+		}
 	}
 
 	public void LoadMap(string mapToLoadPath, string mapName)

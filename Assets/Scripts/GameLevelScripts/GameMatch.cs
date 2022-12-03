@@ -35,11 +35,30 @@ public class GameMatch : MonoBehaviour
 		{
 			p.Initialize(Map.mapData.MapPlayers[index], Map);
 			p.RequestEndTurn += OnEndTurnRequestRecieved;
+			p.RequestPlayerLose += OnRequestPlayerLose;
 			index++;
 		}
 
 		matchData.CurrentRound = 0;
 		SetActivePlayer(0);
+	}
+
+	private void OnRequestPlayerLose(GamePlayer player)
+	{
+		if(player == null || player.State == GamePlayerState.GameOverLosingPlayer)
+		{
+			throw new System.Exception("recieved playerlose event from nonexistant player or already lost player");
+		}
+
+		player.SetState(GamePlayerState.GameOverLosingPlayer);
+
+		//	if there is only 1 non-losing player remaining
+		if(Players.Count(x => x.State != GamePlayerState.GameOverLosingPlayer) == 1)
+		{
+			GamePlayer winningPlayer = Players.First(x => x.State != GamePlayerState.GameOverLosingPlayer);
+			winningPlayer.SetState(GamePlayerState.GameOverWinningPlayer);
+			GameController.Instance.EndCurrentGame();
+		}
 	}
 
 	private void OnEndTurnRequestRecieved(GamePlayer player)
@@ -58,11 +77,27 @@ public class GameMatch : MonoBehaviour
 	{
 		int index = matchData.CurrentActivePlayer;
 		index++;
-
 		if (index >= Players.Length)
 		{
 			index = 0;
 			matchData.CurrentRound++;
+		}
+
+		//	skip any players that have already lost
+		while (Players[index].State == GamePlayerState.GameOverLosingPlayer)
+		{
+			if (Players.All(x =>  x.State == GamePlayerState.GameOverLosingPlayer))
+			{
+				throw new System.Exception("all players have lost!");
+			}
+
+			index++;
+
+			if (index >= Players.Length)
+			{
+				index = 0;
+				matchData.CurrentRound++;
+			}
 		}
 
 		SetActivePlayer(index);

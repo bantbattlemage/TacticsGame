@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+	public StartMenu Menu;
+
 	[HideInInspector]
 	public GameMatch CurrentGameMatch;
 
@@ -44,5 +46,11 @@ public class GameController : MonoBehaviour
 		newMatch.Initialize("TestMap", players, Instantiate(Resources.Load<GameMap>("Prefabs/Game/GameMap")));
 
 		return newMatch;
+	}
+
+	public void EndCurrentGame()
+	{
+		Destroy(CurrentGameMatch.gameObject);
+		Menu.gameObject.SetActive(true);
 	}
 }

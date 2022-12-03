@@ -1,11 +1,9 @@
 using NesScripts.Controls.PathFind;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using static UnityEngine.GraphicsBuffer;
 
 public class GamePlayer : MonoBehaviour
 {
@@ -27,6 +25,9 @@ public class GamePlayer : MonoBehaviour
 	public delegate void RequestEndTurnEvent(GamePlayer sendingPlayer);
 	public RequestEndTurnEvent RequestEndTurn;
 
+	public delegate void RequestPlayerLoseEvent(GamePlayer sendingPlayer);
+	public RequestPlayerLoseEvent RequestPlayerLose;
+
 	public void Initialize(PlayerData data, GameMap map)
 	{
 		GamePlayerData = data;
@@ -34,6 +35,12 @@ public class GamePlayer : MonoBehaviour
 		PlayerCamera.GetComponent<Camera>().depth = data.ID;
 		PlayerInterface.Initialize(this);
 		PlayerInterface.EndTurnButtonPressed += EndTurn;
+
+		map.UnitSpawnedEvent += OnUnitSpawned;
+		map.UnitDestroyedEvent += OnUnitDestroyed;
+		map.UnitMovedEvent += OnUnitMoved;
+		map.BuildingOwnerChangedEvent += OnBuildingOwnerChanged;
+
 		InitializePlayerEntities();
 		SetState(GamePlayerState.Idle_InactivePlayer);
 	}
@@ -74,6 +81,10 @@ public class GamePlayer : MonoBehaviour
 				}
 			}
 		}
+		else if(state == GamePlayerState.GameOverWinningPlayer || state == GamePlayerState.GameOverLosingPlayer)
+		{
+			PlayerInterface.SetLock(true);
+		}
 	}
 
 	public void SetMoney(int value)
@@ -85,6 +96,50 @@ public class GamePlayer : MonoBehaviour
 
 		GamePlayerData.Money = value;
 		PlayerInterface.SetMoneyDisplay(GamePlayerData.Money);
+	}
+
+	private void OnUnitSpawned(GameEntityData entityData, GameTile tile)
+	{
+		UnitData unitData = (UnitData)entityData;
+	}
+
+	private void OnUnitDestroyed(GameEntityData entityData, GameTile tile)
+	{
+		UnitData unitData = (UnitData)entityData;
+
+		//	your commander was destroyed: game over
+		if(unitData.TypedDefinition.UnitType == GameUnitType.Commander && unitData.Owner == GamePlayerData.ID)
+		{
+			RequestPlayerLose(this);
+		}
+	}
+
+	private void OnUnitMoved(GameEntityData entityData, GameTile tile)
+	{
+		UnitData unitData = (UnitData)entityData;
+
+	}
+
+	private void OnBuildingOwnerChanged(GameEntityData entityData, GameTile tile)
+	{
+		BuildingData buildingData = (BuildingData)entityData;
+
+		if(buildingData.TypedDefinition.BuildingType == GameBuildingType.HQ)
+		{
+			List<GameEntityBuilding> allPlayerBuildings = GameMap.Instance.GetAllPlayerBuildingEntities(GamePlayerData.ID);
+
+			if(allPlayerBuildings != null && allPlayerBuildings.Count > 0)
+			{
+				if(!allPlayerBuildings.Any(x => x.TypedData.TypedDefinition.BuildingType == GameBuildingType.HQ))
+				{
+					RequestPlayerLose(this);
+				}
+			}
+			else
+			{
+				RequestPlayerLose(this);
+			}
+		}
 	}
 
 	#region Player Turn Actions
@@ -491,13 +546,19 @@ public class GamePlayer : MonoBehaviour
 
 			//	reset health of captured building
 			target.SetRemainingHealth(building.TypedDefinition.BaseHealth);
+			target.SetRemainingBuyActions(0);
+
+			if(GameMap.Instance.BuildingOwnerChangedEvent != null)
+			{
+				GameMap.Instance.BuildingOwnerChangedEvent(target.TypedData, GameMap.Instance.GetTile(target.Data.Location));
+			}
 		}
 	}
 	#endregion
 
 	#region Unit Attack Action
 	/// <summary>
-	/// Enter a Player Unit Attack Atack state
+	/// Enter a Player Unit Attack state
 	/// </summary>
 	public void BeginUnitAttack(UnitData unit)
 	{

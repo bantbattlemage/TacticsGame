@@ -141,7 +141,7 @@ public class PlayerTooltip : MonoBehaviour
 						break;
 					case GameEntityType.Building:
 						BuildingData buildingData = data as BuildingData;
-						if (buildingData.Owner == _playerID && buildingData.TypedDefinition.BuildingType == GameBuildingType.HQ)
+						if (buildingData.Owner == _playerID && BuildingDefinition.ShopBuildings.Contains(buildingData.TypedDefinition.BuildingType))
 						{
 							DynamicButtons.HqBuyButton(ButtonOne, buildingData);
 						}

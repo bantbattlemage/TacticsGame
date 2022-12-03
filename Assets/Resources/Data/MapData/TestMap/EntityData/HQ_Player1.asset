@@ -17,6 +17,6 @@ MonoBehaviour:
   Location:
     x: 6
     y: 6
-  RemainingHealth: 0
+  RemainingHealth: 2
   State: 0
-  RemainingBuyActions: 1
+  RemainingBuyActions: 0

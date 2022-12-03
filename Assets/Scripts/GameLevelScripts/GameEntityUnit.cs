@@ -42,18 +42,7 @@ public class GameEntityUnit : GameEntity
 		}
 
 		TypedData.RemainingMovement = value;
-
-		if (RemainingActions == 0)
-		{
-			if (State != GameEntityState.ActiveNoActionsAvailable)
-			{
-				SetState(GameEntityState.ActiveNoActionsAvailable);
-			}
-			else
-			{
-				SetPlayerColor();
-			}
-		}
+		CheckRemainingActions();
 	}
 
 	public void SetRemainingAttacks(int value)
@@ -64,18 +53,7 @@ public class GameEntityUnit : GameEntity
 		}
 
 		TypedData.RemainingAttacks = value;
-
-		if(RemainingActions == 0)
-		{
-			if(State != GameEntityState.ActiveNoActionsAvailable)
-			{
-				SetState(GameEntityState.ActiveNoActionsAvailable);
-			}
-			else
-			{
-				SetPlayerColor();
-			}
-		}
+		CheckRemainingActions();
 	}
 
 	public override void RefreshEntity()
