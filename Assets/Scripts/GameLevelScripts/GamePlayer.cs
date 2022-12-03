@@ -156,13 +156,13 @@ public class GamePlayer : MonoBehaviour
 			{
 				case GameEntityType.Unit:
 					UnitData unitData = entity.Data as UnitData;
-					(entity as GameEntityUnit).SetRemainingHealth(unitData.TypedDefinition.BaseHealth);
 					break;
 				case GameEntityType.Building:
 					BuildingData buildingData = entity.Data as BuildingData;
 					break;
 			}
 
+			entity.SetDefaultValues();
 			entity.RefreshEntity();
 		}
 	}

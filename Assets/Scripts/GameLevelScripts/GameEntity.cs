@@ -23,8 +23,12 @@ public class GameEntity : MonoBehaviour
 		Data = data;
 		Data.Location = location;
 		SetPlayerColor();
-		SetRemainingHealth(data.Definition.BaseHealth);
 		CheckRemainingActions();
+	}
+
+	public virtual void SetDefaultValues()
+	{
+		SetRemainingHealth(Data.Definition.BaseHealth);
 	}
 
 	public virtual void SetOwner(int playerID)
@@ -138,7 +142,6 @@ public class GameEntity : MonoBehaviour
 	/// </summary>
 	public virtual void RefreshEntity()
 	{
-		SetRemainingHealth(Data.Definition.BaseHealth);
 		SetState(GameEntityState.ActiveAndReady);
 	}
 }
