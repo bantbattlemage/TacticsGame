@@ -6,6 +6,7 @@
  * Since: 2016. 
 */
 using System.Collections.Generic;
+using TacticGameData;
 
 namespace NesScripts.Controls.PathFind
 {
@@ -71,8 +72,8 @@ namespace NesScripts.Controls.PathFind
 		/// <returns>List of grid nodes that represent the path to walk.</returns>
 		private static List<Node> _ImpFindPath(Grid grid, Point startPos, Point targetPos, DistanceType distance = DistanceType.Euclidean, bool ignorePrices = false)
 		{
-			Node startNode = grid.nodes[startPos.x, startPos.y];
-			Node targetNode = grid.nodes[targetPos.x, targetPos.y];
+			Node startNode = grid.nodes[startPos.X, startPos.Y];
+			Node targetNode = grid.nodes[targetPos.X, targetPos.Y];
 
 			List<Node> openSet = new List<Node>();
 			HashSet<Node> closedSet = new HashSet<Node>();

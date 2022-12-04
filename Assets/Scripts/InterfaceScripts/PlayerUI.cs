@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +6,7 @@ using UnityEngine.EventSystems;
 using System.Linq;
 using UnityEngine.Events;
 using System;
+using TacticGameData;
 
 public class PlayerUI : MonoBehaviour
 {
@@ -64,23 +64,25 @@ public class PlayerUI : MonoBehaviour
 	{
 		Shop.gameObject.SetActive(true);
 
-		List<UnitDefinition> availableUnits = new List<UnitDefinition>();
-		switch (building.TypedDefinition.BuildingType)
+		List<UnitDefinitionObject> availableUnits = new List<UnitDefinitionObject>();
+		switch (building.Definition.BuildingType)
 		{
 			case GameBuildingType.HQ:
 			case GameBuildingType.Barracks:
-				availableUnits = new List<UnitDefinition>
+				availableUnits = new List<UnitDefinitionObject>
 				{
-					Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Regular"),
-					Resources.Load<UnitDefinition>("Data/Definitions/Units/UnitDefinition_Artillery")
+					Resources.Load<UnitDefinitionObject>("Data/Definitions/Units/UnitDefinition_Regular"),
+					Resources.Load<UnitDefinitionObject>("Data/Definitions/Units/UnitDefinition_Artillery")
 				};
 				break;
 			default:
 				throw new Exception("invalid building type for shop!");
 		}
 
+		List<UnitDefinition> unitDefinitions = availableUnits.Select(x => x.GetData()).ToList();
+
 		Shop.Initialize(onCompleteAction);
-		Shop.PopulateShop(availableUnits);
+		Shop.PopulateShop(unitDefinitions);
 	}
 
 	private void OnShopItemPurchaseRequest(ShopItem sender)
@@ -187,7 +189,7 @@ public class PlayerUI : MonoBehaviour
 			ObjectTooltip toolTip = hit.transform.gameObject.GetComponent<ObjectTooltip>();
 			if (toolTip != null)
 			{
-				Tooltip.UpdateTooltip(toolTip.DataSource);
+				Tooltip.UpdateTooltip(toolTip.DataSource as UnitData);
 			}
 		}
 	}
@@ -212,7 +214,7 @@ public class PlayerUI : MonoBehaviour
 			ObjectTooltip toolTip = hit.transform.gameObject.GetComponent<ObjectTooltip>();
 			if (toolTip != null)
 			{
-				TargetTooltip.UpdateTooltip(toolTip.DataSource);
+				TargetTooltip.UpdateTooltip(toolTip.DataSource as UnitData);
 			}
 		}
 	}

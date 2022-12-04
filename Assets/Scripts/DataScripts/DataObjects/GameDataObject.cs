@@ -1,18 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using TacticGameData;
 using UnityEngine;
 
-public enum GameDataType
-{
-	UNASSIGNED,
-	Tile,
-	Entity,
-	Map,
-	Player,
-	Match
-}
-
-public class GameData : ScriptableObject
+public class GameDataObject : ScriptableObject, IGameData, IGameDataProvider<GameData>
 {
 	public virtual GameDataType DataType
 	{
@@ -20,6 +11,15 @@ public class GameData : ScriptableObject
 		{
 			return GameDataType.UNASSIGNED;
 		}
+	}
+
+	public int Sender { get; set; }
+
+	public virtual GameData GetData()
+	{
+		GameData data = new GameData();
+
+		return data;
 	}
 
 	public virtual GameDataType OutputDataToString(out string info)

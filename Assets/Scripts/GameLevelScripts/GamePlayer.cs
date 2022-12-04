@@ -1,7 +1,7 @@
-using NesScripts.Controls.PathFind;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TacticGameData;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -98,39 +98,34 @@ public class GamePlayer : MonoBehaviour
 		PlayerInterface.SetMoneyDisplay(GamePlayerData.Money);
 	}
 
-	private void OnUnitSpawned(GameEntityData entityData, GameTile tile)
+	private void OnUnitSpawned(UnitData entityData, GameTile tile)
 	{
-		UnitData unitData = (UnitData)entityData;
+
 	}
 
-	private void OnUnitDestroyed(GameEntityData entityData, GameTile tile)
+	private void OnUnitDestroyed(UnitData unitData, GameTile tile)
 	{
-		UnitData unitData = (UnitData)entityData;
-
 		//	your commander was destroyed: game over
-		if(unitData.TypedDefinition.UnitType == GameUnitType.Commander && unitData.Owner == GamePlayerData.ID)
+		if(unitData.Definition.UnitType == GameUnitType.Commander && unitData.Owner == GamePlayerData.ID)
 		{
 			RequestPlayerLose(this);
 		}
 	}
 
-	private void OnUnitMoved(GameEntityData entityData, GameTile tile)
+	private void OnUnitMoved(UnitData entityData, GameTile tile)
 	{
-		UnitData unitData = (UnitData)entityData;
-
+		
 	}
 
-	private void OnBuildingOwnerChanged(GameEntityData entityData, GameTile tile)
+	private void OnBuildingOwnerChanged(BuildingData buildingData, GameTile tile)
 	{
-		BuildingData buildingData = (BuildingData)entityData;
-
-		if(buildingData.TypedDefinition.BuildingType == GameBuildingType.HQ)
+		if(buildingData.Definition.BuildingType == GameBuildingType.HQ)
 		{
 			List<GameEntityBuilding> allPlayerBuildings = GameMap.Instance.GetAllPlayerBuildingEntities(GamePlayerData.ID);
 
 			if(allPlayerBuildings != null && allPlayerBuildings.Count > 0)
 			{
-				if(!allPlayerBuildings.Any(x => x.TypedData.TypedDefinition.BuildingType == GameBuildingType.HQ))
+				if(!allPlayerBuildings.Any(x => x.Data.Definition.BuildingType == GameBuildingType.HQ))
 				{
 					RequestPlayerLose(this);
 				}
@@ -155,10 +150,8 @@ public class GamePlayer : MonoBehaviour
 			switch (entity.Data.Definition.EntityType)
 			{
 				case GameEntityType.Unit:
-					UnitData unitData = entity.Data as UnitData;
 					break;
 				case GameEntityType.Building:
-					BuildingData buildingData = entity.Data as BuildingData;
 					break;
 			}
 
@@ -213,12 +206,12 @@ public class GamePlayer : MonoBehaviour
 
 	public void CollectBuildingIncome()
 	{
-		List<GameEntity> entities = GameMap.Instance.GetAllPlayerEntities(GamePlayerData.ID).Where(x => x.Data.Definition.EntityType == GameEntityType.Building).ToList();
+		List<GameEntityBuilding> entities = GameMap.Instance.GetAllPlayerEntities(GamePlayerData.ID).Where(x => x.Data.Definition.EntityType == GameEntityType.Building).Select(x => x as GameEntityBuilding).ToList();
 		int income = 0;
 
-		foreach (GameEntity entity in entities)
+		foreach (GameEntityBuilding entity in entities)
 		{
-			income += (entity as GameEntityBuilding).TypedData.IncomeValue;
+			income += entity.Data.Definition.BaseIncomeValue;
 		}
 
 		SetMoney(GamePlayerData.Money + income);
@@ -231,7 +224,7 @@ public class GamePlayer : MonoBehaviour
 	/// </summary>
 	public void BeginBuildingBuy(BuildingData building)
 	{
-		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0 || GameMap.Instance.GetTile(building.Location).TileData.Entities.Length > 1)
+		if(State != GamePlayerState.Idle_ActivePlayer || building.RemainingBuyActions <= 0 || GameMap.Instance.GetTile(building.Location).TileData.UnitEntities.Length > 1)
 		{
 			return;
 		}
@@ -248,12 +241,12 @@ public class GamePlayer : MonoBehaviour
 
 	public void ExecuteBuildingBuyAction(UnitDefinition unitToBuy)
 	{
-		GameEntityBuilding building = GameMap.Instance.GetEntity(_activeSelectedBuilding) as GameEntityBuilding;
+		GameEntityBuilding building = GameMap.Instance.GetEntity(_activeSelectedBuilding);
 
-		building.SetRemainingBuyActions(building.TypedData.RemainingBuyActions - 1);
+		building.SetRemainingBuyActions(building.Data.RemainingBuyActions - 1);
 		SetMoney(GamePlayerData.Money - unitToBuy.BasePurchaseCost);
 
-		GameEntityUnit newUnit = GameMap.Instance.SpawnNewUnit(unitToBuy, building.TypedData.Location, this);
+		GameEntityUnit newUnit = GameMap.Instance.SpawnNewUnit(unitToBuy, building.Data.Location, this);
 
 		newUnit.RefreshEntity();
 		newUnit.SetState(GameEntityState.ActiveNoActionsAvailable);
@@ -286,15 +279,15 @@ public class GamePlayer : MonoBehaviour
 		{
 			for (int y = -range; y <= range; y++)
 			{
-				Point target = new Point(unit.Location.x + x, unit.Location.y + y);
+				Point target = new Point(unit.Location.X + x, unit.Location.Y + y);
 
 				//  ignore tile already on
-				if (target.x == unit.Location.x && target.y == unit.Location.y)
+				if (target.X == unit.Location.X && target.Y == unit.Location.Y)
 				{
 					continue;
 				}
 
-				GameTile tile = GameMap.Instance.GetTile(target.x, target.y);
+				GameTile tile = GameMap.Instance.GetTile(target.X, target.Y);
 
 				bool validate = true;
 
@@ -306,10 +299,10 @@ public class GamePlayer : MonoBehaviour
 						validate = false;
 					}
 
-					if (tile.TileData.Entities != null && tile.TileData.Entities.Length > 0)
+					if (tile.TileData.BuildingEntities != null && tile.TileData.BuildingEntities.Length > 0)
 					{
-						List<GameEntityData> entities = tile.TileData.Entities.ToList();
-						if(entities.Count == 1 && entities[0].Definition.EntityType == GameEntityType.Building)
+						List<BuildingData> entities = tile.TileData.BuildingEntities.ToList();
+						if(entities.Count == 1)
 						{
 							validate = true;
 						}
@@ -385,14 +378,14 @@ public class GamePlayer : MonoBehaviour
 	{
 		List<GameTile> tiles = new List<GameTile>();
 
-		Point from = new Point(_activeSelectedUnit.Location.x, _activeSelectedUnit.Location.y);
+		Point from = new Point(_activeSelectedUnit.Location.X, _activeSelectedUnit.Location.Y);
 		Point to = new Point(sender.TileData.X, sender.TileData.Y);
 
 		_cachedPath = GameMap.Instance.FindPath(from, to, _activeMoveTiles);
 
 		foreach (Point p in _cachedPath)
 		{
-			GameTile t = GameMap.Instance.GetTile(p.x, p.y);
+			GameTile t = GameMap.Instance.GetTile(p.X, p.Y);
 
 			if (t != null)
 			{
@@ -430,23 +423,23 @@ public class GamePlayer : MonoBehaviour
 
 			foreach (Point p in _cachedPath)
 			{
-				GameMap.Instance.GetTile(p.x, p.y).LockTile();
+				GameMap.Instance.GetTile(p.X, p.Y).LockTile();
 			}
 
 			UnitData newUnitReference = _activeSelectedUnit;
 			List<Point> newPoints = new List<Point>(_cachedPath);
 
-			GameEntityData[] entities = sender.TileData.Entities;
+			BuildingData[] entities = sender.TileData.BuildingEntities;
 
 			//	moving into a tile with a capturable building
-			if (entities != null && entities.Length == 1 && entities[0].Definition.EntityType == GameEntityType.Building && entities[0].Owner != GamePlayerData.ID && _activeSelectedUnit.RemainingAttacks > 0)
+			if (entities != null && entities.Length == 1 && entities[0].Owner != GamePlayerData.ID && _activeSelectedUnit.RemainingAttacks > 0)
 			{
 				UnityAction[] buttonActions = new UnityAction[3];
 				string[] buttonLabels = new string[] { "Capture", "Move", "Cancel" };
 				int cancelIndex = 2;
 
 				//	capture
-				buttonActions[0] = DynamicButtons.UnitCaptureBuildingButton(this, newUnitReference, (BuildingData)entities[0], newPoints);
+				buttonActions[0] = DynamicButtons.UnitCaptureBuildingButton(this, newUnitReference, entities[0], newPoints);
 				//	move
 				buttonActions[1] = () =>
 				{
@@ -463,7 +456,7 @@ public class GamePlayer : MonoBehaviour
 					PlayerInterface.ConfirmBox.Disable();
 					foreach (Point p in newPoints)
 					{
-						GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
+						GameMap.Instance.GetTile(p.X, p.Y).UnlockTile();
 					}
 				};
 
@@ -487,7 +480,7 @@ public class GamePlayer : MonoBehaviour
 					PlayerInterface.EnableTargetTooltip(false);
 					foreach (Point p in newPoints)
 					{
-						GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
+						GameMap.Instance.GetTile(p.X, p.Y).UnlockTile();
 					}
 				});
 			}
@@ -503,15 +496,15 @@ public class GamePlayer : MonoBehaviour
 	{
 		if(points.Count > unit.RemainingMovement)
 		{
-			throw new Exception(string.Format("attempted to move unit {0} greater than its remaining movement", unit.name));
+			throw new Exception(string.Format("attempted to move unit {0} greater than its remaining movement", unit.ToString()));
 		}
 
-		(GameMap.Instance.GetEntity(unit) as GameEntityUnit).SetRemainingMovement(unit.RemainingMovement - points.Count);
+		GameMap.Instance.GetEntity(unit).SetRemainingMovement(unit.RemainingMovement - points.Count);
 		GameMap.Instance.MoveEntity(unit, points);
 
 		foreach (Point p in points)
 		{
-			GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
+			GameMap.Instance.GetTile(p.X, p.Y).UnlockTile();
 		}
 	}
 
@@ -522,11 +515,11 @@ public class GamePlayer : MonoBehaviour
 	{
 		if (unit.RemainingAttacks <= 0)
 		{
-			throw new Exception(string.Format("attempted building capture with unit {0} but it has no attacks left", unit.name));
+			throw new Exception(string.Format("attempted building capture with unit {0} but it has no attacks left", unit.ToString()));
 		}
 
-		GameEntityUnit gameUnit = GameMap.Instance.GetEntity(unit) as GameEntityUnit;
-		GameEntityBuilding target = GameMap.Instance.GetEntity(building) as GameEntityBuilding;
+		GameEntityUnit gameUnit = GameMap.Instance.GetEntity(unit);
+		GameEntityBuilding target = GameMap.Instance.GetEntity(building);
 
 		gameUnit.SetRemainingAttacks(unit.RemainingAttacks - 1);
 		target.SetRemainingHealth(building.RemainingHealth - 1);
@@ -545,12 +538,12 @@ public class GamePlayer : MonoBehaviour
 			}
 
 			//	reset health of captured building
-			target.SetRemainingHealth(building.TypedDefinition.BaseHealth);
+			target.SetRemainingHealth(building.Definition.BaseHealth);
 			target.SetRemainingBuyActions(0);
 
 			if(GameMap.Instance.BuildingOwnerChangedEvent != null)
 			{
-				GameMap.Instance.BuildingOwnerChangedEvent(target.TypedData, GameMap.Instance.GetTile(target.Data.Location));
+				GameMap.Instance.BuildingOwnerChangedEvent(target.Data, GameMap.Instance.GetTile(target.Data.Location));
 			}
 		}
 	}
@@ -568,7 +561,7 @@ public class GamePlayer : MonoBehaviour
 		}
 
 		List<GameTile> tiles = new List<GameTile>();
-		int range = unit.TypedDefinition.BaseAttackRange;
+		int range = unit.Definition.BaseAttackRange;
 		_cachedMaxMoveDistance = range;
 
 		if (range <= 0)
@@ -580,15 +573,15 @@ public class GamePlayer : MonoBehaviour
 		{
 			for (int y = -range; y <= range; y++)
 			{
-				Point target = new Point(unit.Location.x + x, unit.Location.y + y);
+				Point target = new Point(unit.Location.X + x, unit.Location.Y + y);
 
 				//  ignore tile already on
-				if (target.x == unit.Location.x && target.y == unit.Location.y)
+				if (target.X == unit.Location.X && target.Y == unit.Location.Y)
 				{
 					continue;
 				}
 
-				GameTile tile = GameMap.Instance.GetTile(target.x, target.y);
+				GameTile tile = GameMap.Instance.GetTile(target.X, target.Y);
 
 				if (tile != null)
 				{
@@ -623,14 +616,14 @@ public class GamePlayer : MonoBehaviour
 	{
 		List<GameTile> tiles = new List<GameTile>();
 
-		Point from = new Point(_activeSelectedUnit.Location.x, _activeSelectedUnit.Location.y);
+		Point from = new Point(_activeSelectedUnit.Location.X, _activeSelectedUnit.Location.Y);
 		Point to = new Point(sender.TileData.X, sender.TileData.Y);
 
 		_cachedPath = GameMap.Instance.FindPath(from, to, _activeMoveTiles);
 
 		foreach (Point p in _cachedPath)
 		{
-			GameTile tile = GameMap.Instance.GetTile(p.x, p.y);
+			GameTile tile = GameMap.Instance.GetTile(p.X, p.Y);
 
 			if (tile != null)
 			{
@@ -638,9 +631,9 @@ public class GamePlayer : MonoBehaviour
 
 				if (tile != null)
 				{
-					if (tile.TileData.Entities != null && tile.TileData.Entities.Length > 0)
+					if (tile.TileData.UnitEntities != null && tile.TileData.UnitEntities.Length > 0)
 					{
-						if (tile.TileData.Entities.Any(x => x.Owner != GamePlayerData.ID && x.Definition.EntityType == GameEntityType.Unit))
+						if (tile.TileData.UnitEntities.Any(x => x.Owner != GamePlayerData.ID))
 						{
 							validate = true;
 						}
@@ -682,11 +675,11 @@ public class GamePlayer : MonoBehaviour
 		{
 			UnitData target = null;
 
-			if (sender.TileData.Entities.Length > 0)
+			if (sender.TileData.UnitEntities.Length > 0)
 			{
 				try
 				{
-					target = sender.TileData.Entities.First(x => x.Owner != GamePlayerData.ID && x.Definition.EntityType == GameEntityType.Unit) as UnitData;
+					target = sender.TileData.UnitEntities.First(x => x.Owner != GamePlayerData.ID && x.Definition.EntityType == GameEntityType.Unit);
 				}
 				catch (Exception ex)
 				{
@@ -697,7 +690,7 @@ public class GamePlayer : MonoBehaviour
 
 			if (target != null)
 			{
-				GameMap.Instance.GetTile(_cachedPath.Last().x, _cachedPath.Last().y).LockTile();
+				GameMap.Instance.GetTile(_cachedPath.Last().X, _cachedPath.Last().Y).LockTile();
 				UnitData newUnitReference = _activeSelectedUnit;
 				List<Point> newPoints = new List<Point>() { _cachedPath.Last() };
 
@@ -717,7 +710,7 @@ public class GamePlayer : MonoBehaviour
 
 					foreach (Point p in newPoints)
 					{
-						GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
+						GameMap.Instance.GetTile(p.X, p.Y).UnlockTile();
 					}
 				});
 
@@ -741,15 +734,15 @@ public class GamePlayer : MonoBehaviour
 	{
 		if(unit.RemainingAttacks <= 0)
 		{
-			throw new Exception(string.Format("attempted attack with unit {0} but it has no attacks left", unit.name));
+			throw new Exception(string.Format("attempted attack with unit {0} but it has no attacks left", unit.ToString()));
 		}
 
-		GameEntityUnit gameUnit = (GameMap.Instance.GetEntity(unit) as GameEntityUnit);
-		GameEntityUnit targetGameUnit = (GameMap.Instance.GetEntity(target) as GameEntityUnit);
+		GameEntityUnit gameUnit = GameMap.Instance.GetEntity(unit);
+		GameEntityUnit targetGameUnit = GameMap.Instance.GetEntity(target);
 
 		gameUnit.SetRemainingAttacks(unit.RemainingAttacks - 1);
 
-		int newTargetHealth = targetGameUnit.TypedData.RemainingHealth - unit.TypedDefinition.BaseAttackDamage;
+		int newTargetHealth = targetGameUnit.Data.RemainingHealth - unit.Definition.BaseAttackDamage;
 		if(newTargetHealth < 0)
 		{
 			newTargetHealth = 0;
@@ -759,7 +752,7 @@ public class GamePlayer : MonoBehaviour
 
 		foreach (Point p in points)
 		{
-			GameMap.Instance.GetTile(p.x, p.y).UnlockTile();
+			GameMap.Instance.GetTile(p.X, p.Y).UnlockTile();
 		}
 	}
 	#endregion

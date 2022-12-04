@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using TacticGameData;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;

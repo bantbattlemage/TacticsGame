@@ -1,13 +1,10 @@
-using NesScripts.Controls.PathFind;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
+using TacticGameData;
 using UnityEngine;
 
 public class GameEntity : MonoBehaviour
 {
-	public GameEntityData Data;
+	public GameEntityData<GameDefinition> Data;
 	public virtual int RemainingActions { get { return Data.RemainingActions; } }
 
 	public GameEntityState State
@@ -18,9 +15,13 @@ public class GameEntity : MonoBehaviour
 		}
 	}
 
-	public virtual void Initialize(GameEntityData data, Point location)
+	public virtual void Initialize(Point location)
 	{
-		Data = data;
+		if(Data == null)
+		{
+			throw new System.Exception("Data type is not initialized!");
+		}
+
 		Data.Location = location;
 		SetPlayerColor();
 		CheckRemainingActions();

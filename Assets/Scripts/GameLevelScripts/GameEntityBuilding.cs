@@ -1,14 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using TacticGameData;
 using UnityEngine;
 
 public class GameEntityBuilding : GameEntity
 {
-	public BuildingData TypedData { get { return Data as BuildingData; } }
+	public new BuildingData Data;
 
 	public override int RemainingActions
+	{	
+		get { return Data.RemainingBuyActions; }
+	}
+
+	public void Initialize(BuildingData data, Point location)
 	{
-		get { return TypedData.RemainingBuyActions; }
+		Data = data;
+		base.Initialize(location);
 	}
 
 	public override void SetRemainingHealth(int value)
@@ -23,13 +30,13 @@ public class GameEntityBuilding : GameEntity
 			value = 0;
 		}
 
-		TypedData.RemainingBuyActions = value;
+		Data.RemainingBuyActions = value;
 		CheckRemainingActions();
 	}
 
 	public override void RefreshEntity()
 	{
-		SetRemainingBuyActions(TypedData.TypedDefinition.BaseBuyActions);
+		SetRemainingBuyActions(Data.Definition.BaseBuyActions);
 		SetState(GameEntityState.ActiveAndReady);
 	}
 }

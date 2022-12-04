@@ -1,6 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TacticGameData;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -47,7 +47,7 @@ public class PlayerTooltip : MonoBehaviour
 		ButtonFour.gameObject.SetActive(false);
 	}
 
-	public void UpdateTooltip(GameData data)
+	public void UpdateTooltip(UnitData data)
 	{
 		if (_lockMouseOver)
 		{
@@ -57,49 +57,77 @@ public class PlayerTooltip : MonoBehaviour
 		string title = "";
 		string content = "";
 
-		switch (data.DataType)
+		title = data.Definition.UnitType.ToString();
+		content += "Owner PlayerID: " + data.Owner.ToString();
+		content += string.Format("\nHealth: {0}/{1}", data.RemainingHealth, data.Definition.BaseHealth);
+		content += string.Format("\nMovement: {0}/{1}", data.RemainingMovement, data.Definition.BaseMovement);
+		content += string.Format("\nAttacks: {0}/{1}", data.RemainingAttacks, data.Definition.BaseNumberOfAttacks);
+		content += string.Format("\nAttack Damage: {0}", data.Definition.BaseAttackDamage);
+		content += string.Format("\nAttack Range: {0}", data.Definition.BaseAttackRange);
+
+		TooltipTitle.text = title;
+		TooltipContent.text = content;
+	}
+
+	public void UpdateTooltip(BuildingData data)
+	{
+		if (_lockMouseOver)
 		{
-			case GameDataType.Tile:
-				TileData tileData = data as TileData;
-				title = string.Format("({0}, {1})", tileData.X, tileData.Y);
-				content = tileData.Type.ToString();
-				break;
-			case GameDataType.Entity:
-				GameEntityData entityData = data as GameEntityData;				
-				switch (entityData.Definition.EntityType)
-				{
-					case GameEntityType.Unit:
-						UnitData unitData = data as UnitData;
-						title = unitData.TypedDefinition.UnitType.ToString();
-						content += "Owner PlayerID: " + unitData.Owner.ToString();
-						content += string.Format("\nHealth: {0}/{1}", unitData.RemainingHealth, unitData.TypedDefinition.BaseHealth);
-						content += string.Format("\nMovement: {0}/{1}", unitData.RemainingMovement, unitData.TypedDefinition.BaseMovement);
-						content += string.Format("\nAttacks: {0}/{1}", unitData.RemainingAttacks, unitData.TypedDefinition.BaseNumberOfAttacks);
-						content += string.Format("\nAttack Damage: {0}", unitData.TypedDefinition.BaseAttackDamage);
-						content += string.Format("\nAttack Range: {0}", unitData.TypedDefinition.BaseAttackRange);
-						break;
-					case GameEntityType.Building:
-						BuildingData buildingData = data as BuildingData;
-						title = buildingData.TypedDefinition.BuildingType.ToString();
-						content += "Owner PlayerID: " + buildingData.Owner.ToString();
-						content += string.Format("\nHealth: {0}/{1}", buildingData.RemainingHealth, buildingData.TypedDefinition.BaseHealth);
-						content += string.Format("\nActions: {0}/{1}", buildingData.RemainingBuyActions, buildingData.TypedDefinition.BaseBuyActions);
-						break;
-					default:
-						Debug.LogWarning("invalid data on tooltip!");
-						break;
-				}
-				break;
-			default:
-				Debug.LogWarning("no data on tooltip!");
-				break;
+			return;
 		}
+
+		string title = "";
+		string content = "";
+
+		title = data.Definition.BuildingType.ToString();
+		content += "Owner PlayerID: " + data.Owner.ToString();
+		content += string.Format("\nHealth: {0}/{1}", data.RemainingHealth, data.Definition.BaseHealth);
+		content += string.Format("\nActions: {0}/{1}", data.RemainingBuyActions, data.Definition.BaseBuyActions);
+
+		TooltipTitle.text = title;
+		TooltipContent.text = content;
+	}
+
+	public void UpdateTooltip(TileData data)
+	{
+		if (_lockMouseOver)
+		{
+			return;
+		}
+
+		string title = string.Format("({0}, {1})", data.X, data.Y);
+		string content = data.Type.ToString();
 
 		TooltipTitle.text = title;
 		TooltipContent.text = content;
 	}
 
 	public void Select(GameData data)
+	{
+		switch (data.DataType)
+		{
+			case GameDataType.Tile:
+				Select(data as TileData);
+				break;
+			case GameDataType.Entity:
+				GameEntityData<GameDefinition> entityData = data as GameEntityData<GameDefinition>;
+				switch (entityData.Definition.EntityType)
+				{
+					case GameEntityType.Unit:
+						Select(data as UnitData);
+						break;
+					case GameEntityType.Building:
+						Select(data as BuildingData);
+						break;
+				}
+				break;
+			default:
+			case GameDataType.UNASSIGNED:
+				break;
+		}
+	}
+
+	public void Select(UnitData data)
 	{
 		if (_lockMouseOver)
 		{
@@ -108,51 +136,51 @@ public class PlayerTooltip : MonoBehaviour
 
 		DisableButtons();
 
-		switch (data.DataType)
+		if (data.Owner == _playerID)
 		{
-			case GameDataType.Tile:
-				break;
-			case GameDataType.Entity:
-				GameEntityData gameEntityData = data as GameEntityData;
-				switch (gameEntityData.Definition.EntityType)
-				{
-					case GameEntityType.Unit:
-						UnitData unitData = data as UnitData;
-						if (unitData.Owner == _playerID)
-						{
-							DynamicButtons.UnitMoveButton(ButtonOne, unitData);
-							DynamicButtons.UnitAttackButton(ButtonTwo, unitData);
+			DynamicButtons.UnitMoveButton(ButtonOne, data);
+			DynamicButtons.UnitAttackButton(ButtonTwo, data);
 
-							//	check if we need a Capture button
-							List<GameEntityData> tileEntities = GameMap.Instance.GetTile(unitData.Location).TileData.Entities.ToList();
-							try
-							{
-								BuildingData capturableBuilding = tileEntities.First(x => x.Definition.EntityType == GameEntityType.Building && x.Owner != _playerID) as BuildingData;
-								if (capturableBuilding != null)
-								{
-									DynamicButtons.UnitCaptureBuildingButton(ButtonThree, GameMatch.Instance.GetPlayer(_playerID), unitData, capturableBuilding);
-								}
-							}
-							catch
-							{
-								//	fail silently if there is no capturable building
-							}
-						}
-						break;
-					case GameEntityType.Building:
-						BuildingData buildingData = data as BuildingData;
-						if (buildingData.Owner == _playerID && BuildingDefinition.ShopBuildings.Contains(buildingData.TypedDefinition.BuildingType))
-						{
-							DynamicButtons.HqBuyButton(ButtonOne, buildingData);
-						}
-						break;
-					default:
-						break;
+			//	check if we need a Capture button
+			List<BuildingData> tileEntities = GameMap.Instance.GetTile(data.Location).TileData.BuildingEntities.ToList();
+			try
+			{
+				BuildingData capturableBuilding = tileEntities.First(x => x.Owner != _playerID);
+				if (capturableBuilding != null)
+				{
+					DynamicButtons.UnitCaptureBuildingButton(ButtonThree, GameMatch.Instance.GetPlayer(_playerID), data, capturableBuilding);
 				}
-				break;
-			default:
-				break;
+			}
+			catch
+			{
+				//	fail silently if there is no capturable building
+			}
 		}
+	}
+
+	public void Select(BuildingData data)
+	{
+		if (_lockMouseOver)
+		{
+			return;
+		}
+
+		DisableButtons();
+
+		if (data.Owner == _playerID && BuildingDefinitionObject.ShopBuildings.Contains(data.Definition.BuildingType))
+		{
+			DynamicButtons.HqBuyButton(ButtonOne, data);
+		}
+	}
+
+	public void Select(TileData data)
+	{
+		if (_lockMouseOver)
+		{
+			return;
+		}
+
+		DisableButtons();
 	}
 
 	public void Deselect()

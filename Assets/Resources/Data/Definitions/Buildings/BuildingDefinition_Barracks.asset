@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac65306a7be9f8c46a282cead4c0e716, type: 3}
   m_Name: BuildingDefinition_Barracks
   m_EditorClassIdentifier: 
-  BaseHealth: 1
+  <BaseHealth>k__BackingField: 1
   Prefab: {fileID: 4379241539801061471, guid: fe297be0e38ffc1478e2048af5d5bf96, type: 3}
-  BuildingType: 2
-  BaseBuyActions: 1
-  BaseIncomeValue: 500
+  <BuildingType>k__BackingField: 2
+  <BaseBuyActions>k__BackingField: 1
+  <BaseIncomeValue>k__BackingField: 1000

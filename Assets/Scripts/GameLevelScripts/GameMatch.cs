@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using TacticGameData;
 
 public class GameMatch : MonoBehaviour
 {
-	public MatchData matchData;
+	public MatchDataObject matchData;
 
 	public GameMap Map;
 	public GamePlayer[] Players;

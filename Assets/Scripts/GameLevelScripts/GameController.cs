@@ -37,7 +37,7 @@ public class GameController : MonoBehaviour
 
 	public GameMatch StartMatch(int numberOfPlayers)
 	{
-		MatchData newMatchData = ScriptableObject.CreateInstance<MatchData>();
+		MatchDataObject newMatchData = ScriptableObject.CreateInstance<MatchDataObject>();
 		GameMatch newMatch = Instantiate(Resources.Load<GameMatch>("Prefabs/Game/GameMatch"));
 		newMatch.matchData = newMatchData;
 		CurrentGameMatch = newMatch;

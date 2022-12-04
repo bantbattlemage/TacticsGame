@@ -1,11 +1,8 @@
-using NesScripts.Controls.PathFind;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
+using TacticGameData;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-using static UnityEngine.EventSystems.EventTrigger;
 
 [System.Serializable]
 public class GameTile : MonoBehaviour
@@ -16,7 +13,8 @@ public class GameTile : MonoBehaviour
 	public Material HilightRedMaterial;
 	public TileData TileData;
 
-	public List<GameEntity> SpawnedEntities = new List<GameEntity>();
+	public List<GameEntityUnit> SpawnedUnits = new List<GameEntityUnit>();
+	public List<GameEntityBuilding> SpawnedBuildings = new List<GameEntityBuilding>();
 
 	public delegate void GameTileMoveUnitEvent(GameTile sender);
 	public GameTileMoveUnitEvent GameTileMoveUnitMouseOver;
@@ -61,22 +59,33 @@ public class GameTile : MonoBehaviour
 		DisableHilightForMovement();
 	}
 
-	public void AddEntity(GameEntityData entityToAdd)
+	public void AddEntity(BuildingData entityToAdd)
 	{
-		List<GameEntityData> entities = TileData.Entities.ToList();
+		List<BuildingData> entities = TileData.BuildingEntities.ToList();
 		entities.Add(entityToAdd);
-		TileData.Entities = entities.ToArray();
+		TileData.BuildingEntities = entities.ToArray();
 	}
 
-	public GameEntity SpawnEntity(GameEntityData entityToSpawn)
+	public void AddEntity(UnitData entityToAdd)
 	{
-		if (TileData.Entities.Contains(entityToSpawn))
-		{
-			GameObject newEntity = Instantiate(entityToSpawn.Definition.Prefab, transform);
-			GameEntity entity = newEntity.GetComponent<GameEntity>();
+		List<UnitData> entities = TileData.UnitEntities.ToList();
+		entities.Add(entityToAdd);
+		TileData.UnitEntities = entities.ToArray();
+	}
+
+	public GameEntityBuilding SpawnEntity(BuildingData entityToSpawn)
+	{
+		if (TileData.BuildingEntities.Contains(entityToSpawn))
+		{			
+			GameObject prefab = null;
+			string path = "Data/Definitions/Building";
+			prefab = Resources.LoadAll<BuildingDefinitionObject>(path).First(x => x.GetData() == entityToSpawn.Definition).GameObject();
+
+			GameObject newEntity = Instantiate(prefab, transform);
+			GameEntityBuilding entity = newEntity.GetComponent<GameEntityBuilding>();
 			newEntity.transform.localPosition = new Vector3(0, 0, 0);
 			entity.Initialize(entityToSpawn, new Point(TileData.X, TileData.Y));
-			SpawnedEntities.Add(entity);
+			SpawnedBuildings.Add(entity);
 			return entity;
 		}
 		else
@@ -86,19 +95,59 @@ public class GameTile : MonoBehaviour
 		}
 	}
 
-	public void RemoveEntity(GameEntityData entityToRemove)
+	public GameEntityUnit SpawnEntity(UnitData entityToSpawn)
 	{
-		if (TileData.Entities.Contains(entityToRemove))
+		if (TileData.UnitEntities.Contains(entityToSpawn))
 		{
-			List<GameEntityData> entities = TileData.Entities.ToList();
+			GameObject prefab = null;
+			string path = "Data/Definitions/Building";
+			prefab = Resources.LoadAll<UnitDefinitionObject>(path).First(x => x.GetData() == entityToSpawn.Definition).GameObject();
 
-			GameEntity target = SpawnedEntities.First(x => x.Data == entityToRemove);
+			GameObject newEntity = Instantiate(prefab, transform);
+			GameEntityUnit entity = newEntity.GetComponent<GameEntityUnit>();
+			newEntity.transform.localPosition = new Vector3(0, 0, 0);
+			entity.Initialize(entityToSpawn, new Point(TileData.X, TileData.Y));
+			SpawnedUnits.Add(entity);
+			return entity;
+		}
+		else
+		{
+			Debug.LogError("Entity is not in tile!");
+			return null;
+		}
+	}
+
+	public void RemoveEntity(BuildingData entityToRemove)
+	{
+		if (TileData.BuildingEntities.Contains(entityToRemove))
+		{
+			List<BuildingData> entities = TileData.BuildingEntities.ToList();
+			GameEntityBuilding target = SpawnedBuildings.First(x => x.Data == entityToRemove);
 
 			Destroy(target.gameObject);
-			SpawnedEntities.Remove(target);
+			SpawnedBuildings.Remove(target);
 
 			entities.Remove(entityToRemove);
-			TileData.Entities = entities.ToArray();
+			TileData.BuildingEntities = entities.ToArray();
+		}
+		else
+		{
+			Debug.LogError("Entity is not in tile!");
+		}
+	}
+
+	public void RemoveEntity(UnitData entityToRemove)
+	{
+		if (TileData.UnitEntities.Contains(entityToRemove))
+		{
+			List<UnitData> entities = TileData.UnitEntities.ToList();
+			GameEntityUnit target = SpawnedUnits.First(x => x.Data == entityToRemove);
+
+			Destroy(target.gameObject);
+			SpawnedUnits.Remove(target);
+
+			entities.Remove(entityToRemove);
+			TileData.UnitEntities = entities.ToArray();
 		}
 		else
 		{

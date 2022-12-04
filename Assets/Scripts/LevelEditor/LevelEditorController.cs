@@ -1,8 +1,9 @@
-using NesScripts.Controls.PathFind;
 using System.Collections.Generic;
 using System.Linq;
+using TacticGameData;
 using UnityEditor;
 using UnityEngine;
+
 #if UNITY_EDITOR
 [ExecuteInEditMode]
 public class LevelEditorController : MonoBehaviour
@@ -20,7 +21,7 @@ public class LevelEditorController : MonoBehaviour
 
 	[Header("Load")]
 	public bool LoadMap = false;
-	public MapData MapToLoad;
+	public MapDataObject MapToLoad;
 
 	[Header("Settings")]
 	public GameObject BasicTile;
@@ -77,31 +78,32 @@ public class LevelEditorController : MonoBehaviour
 		AssetDatabase.SaveAssets();
 		AssetDatabase.Refresh();
 
-		MapData newMapData = ScriptableObject.CreateInstance<MapData>();
+		MapDataObject newMapData = ScriptableObject.CreateInstance<MapDataObject>();
 		AssetDatabase.CreateAsset(newMapData, "Assets/" + name + "/" + Name + ".asset");
 
-		List<TileData> newTiles = new List<TileData>();
+		List<TileDataObject> newTiles = new List<TileDataObject>();
 		for (int x = 0; x < LoadedTiles.GetLength(0); x++)
 		{
 			for (int y = 0; y < LoadedTiles.GetLength(1); y++)
 			{
 				TileData data = LoadedTiles[x, y].GetComponent<GameTile>().TileData;
-				AssetDatabase.CreateAsset(data, tileFolderPath + "/tile" + x + y + ".asset");
-				newTiles.Add(data);
+				TileDataObject dataObject = TileDataObject.Instantiate(data);
+				AssetDatabase.CreateAsset(dataObject, tileFolderPath + "/tile" + x + y + ".asset");
+				newTiles.Add(dataObject);
 			}
 		}
 
 		AssetDatabase.SaveAssets();
 
-		newMapData.MapTiles = newTiles.ToArray();
+		newMapData.MapTiles = newTiles.Select(x=>x.GetData()).ToArray();
 		newMapData.MapPlayers = new PlayerData[Players];
 
 		for (int i = 0; i < Players; i++)
 		{
-			PlayerData newPlayer = ScriptableObject.CreateInstance<PlayerData>();
+			PlayerDataObject newPlayer = ScriptableObject.CreateInstance<PlayerDataObject>();
 			newPlayer.ID = i;
 			newPlayer.Name = string.Format("Player {0}", i + 1);
-			newMapData.MapPlayers[i] = newPlayer;
+			newMapData.MapPlayers[i] = newPlayer.GetData();
 			AssetDatabase.CreateAsset(newPlayer, playerFolderPath + "/Player" + newPlayer.ID + ".asset");
 		}
 
@@ -111,7 +113,7 @@ public class LevelEditorController : MonoBehaviour
 		Selection.activeObject = newMapData;
 	}
 
-	private void CreateMap(MapData mapData = null)
+	private void CreateMap(MapDataObject mapData = null)
 	{
 		if (mapData == null)
 		{
@@ -137,29 +139,43 @@ public class LevelEditorController : MonoBehaviour
 				newlyInstantiatedTile.name = string.Format("{0},{1}", x, y);
 				newlyInstantiatedTile.transform.parent = root.transform;
 
+				//	read existing map tile data
 				if (mapData != null)
 				{
 					TileData tileData = mapData.MapTiles.First(tile => tile.X == x && tile.Y == y);
 					newlyInstantiatedTile.GetComponent<GameTile>().TileData = tileData;
-					if (tileData.Entities != null && tileData.Entities.Length > 0)
-					{
-						foreach (GameEntityData data in tileData.Entities)
-						{
-							GameObject newEntity = Instantiate(data.Definition.Prefab, newlyInstantiatedTile.transform);
-							newEntity.GetComponent<GameEntity>().Initialize(data, new Point(tileData.X, tileData.Y));
-						}
-					}
+
+					//if (tileData.UnitEntities != null && tileData.UnitEntities.Length > 0)
+					//{
+					//	foreach (UnitData data in tileData.UnitEntities)
+					//	{
+							
+					//		GameObject newEntity = Instantiate(data.Definition.Prefab, newlyInstantiatedTile.transform);
+					//		newEntity.GetComponent<GameEntityUnit>().Initialize(data, new Point(tileData.X, tileData.Y));
+					//	}
+					//}
+					//if (tileData.BuildingEntities != null && tileData.BuildingEntities.Length > 0)
+					//{
+					//	foreach (BuildingData data in tileData.BuildingEntities)
+					//	{
+					//		GameObject prefab = Resources.Load("Data/Definitions/Buildings/")
+					//		GameObject newEntity = Instantiate(data.Definition.Prefab, newlyInstantiatedTile.transform);
+					//		newEntity.GetComponent<GameEntityBuilding>().Initialize(data, new Point(tileData.X, tileData.Y));
+					//	}
+					//}
 
 					newlyInstantiatedTile.GetComponent<GameTile>().Initialize(tileData);
 				}
+				//	initialize new tiles
 				else
 				{
-					TileData tileData = ScriptableObject.CreateInstance<TileData>();
+					TileDataObject tileData = ScriptableObject.CreateInstance<TileDataObject>();
 					tileData.X = x;
 					tileData.Y = y;
-					tileData.Entities = new GameEntityData[0];
+					tileData.UnitEntities = new UnitData[0];
+					tileData.BuildingEntities = new BuildingData[0];
 					tileData.Type = TerrainType.Field;
-					newlyInstantiatedTile.GetComponent<GameTile>().Initialize(tileData);
+					newlyInstantiatedTile.GetComponent<GameTile>().Initialize(tileData.GetData());
 				}
 
 				LoadedTiles[x, y] = newlyInstantiatedTile;

@@ -1,25 +1,22 @@
-using NesScripts.Controls.PathFind;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using TacticGameData;
 
 public class GameEntityUnit : GameEntity
 {
-	public UnitData TypedData { get { return Data as UnitData; } }
+	public new UnitData Data { get; set; }
 
-	public override void Initialize(GameEntityData data, Point location)
+	public void Initialize(UnitData data, Point location)
 	{
-		base.Initialize(data, location);
+		Data = data;
+		base.Initialize(location);
 	}
 
 	public override void SetRemainingHealth(int value)
 	{
 		base.SetRemainingHealth(value);
 
-		if (TypedData.RemainingHealth <= 0)
+		if (Data.RemainingHealth <= 0)
 		{
-			GameMap.Instance.DestroyUnit(TypedData);
+			GameMap.Instance.DestroyUnit(Data);
 		}
 	}
 
@@ -41,7 +38,7 @@ public class GameEntityUnit : GameEntity
 			value = 0;
 		}
 
-		TypedData.RemainingMovement = value;
+		Data.RemainingMovement = value;
 		CheckRemainingActions();
 	}
 
@@ -52,14 +49,14 @@ public class GameEntityUnit : GameEntity
 			value = 0;
 		}
 
-		TypedData.RemainingAttacks = value;
+		Data.RemainingAttacks = value;
 		CheckRemainingActions();
 	}
 
 	public override void RefreshEntity()
 	{
-		SetRemainingAttacks(TypedData.TypedDefinition.BaseNumberOfAttacks);
-		SetRemainingMovement(TypedData.TypedDefinition.BaseMovement);
+		SetRemainingAttacks(Data.Definition.BaseNumberOfAttacks);
+		SetRemainingMovement(Data.Definition.BaseMovement);
 		SetState(GameEntityState.ActiveAndReady);
 	}
 }

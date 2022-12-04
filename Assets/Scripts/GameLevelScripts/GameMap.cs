@@ -1,7 +1,8 @@
-using NesScripts.Controls.PathFind;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using TacticGameData;
+using NesScripts.Controls.PathFind;
 
 public class GameMap : MonoBehaviour
 {
@@ -11,11 +12,14 @@ public class GameMap : MonoBehaviour
 
 	public static int TileSize = 10;
 
-	public delegate void GameMapEvent(GameEntityData entityData, GameTile tile);
-	public GameMapEvent UnitSpawnedEvent;
-	public GameMapEvent UnitDestroyedEvent;
-	public GameMapEvent UnitMovedEvent;
-	public GameMapEvent BuildingOwnerChangedEvent;
+	public delegate void GameMapUnitEvent(UnitData entityData, GameTile tile);
+	public delegate void GameMapBuildingEvent(BuildingData entityData, GameTile tile);
+	public GameMapUnitEvent UnitSpawnedEvent;
+	public GameMapUnitEvent UnitDestroyedEvent;
+	public GameMapUnitEvent UnitMovedEvent;
+	public GameMapBuildingEvent BuildingSpawnedEvent;
+	public GameMapBuildingEvent BuildingDestroyedEvent;
+	public GameMapBuildingEvent BuildingOwnerChangedEvent;
 
 	public Vector2 MapSize
 	{
@@ -27,18 +31,39 @@ public class GameMap : MonoBehaviour
 
 	public GameEntityUnit SpawnNewUnit(UnitDefinition unitToSpawn, Point location, GamePlayer owner)
 	{
-		GameEntityData newUnit = unitToSpawn.Instantiate();
+		UnitDataObject newUnit = UnitDefinitionObject.Instantiate(unitToSpawn);
+		UnitData data = newUnit.GetData();
 		GameTile tile = GetTile(location);
 
-		tile.AddEntity(newUnit);
+		tile.AddEntity(data);
 
-		GameEntityUnit newEntity = tile.SpawnEntity(newUnit) as GameEntityUnit;
-		newEntity.Initialize(newUnit, location);
+		GameEntityUnit newEntity = tile.SpawnEntity(data);
+		newEntity.Initialize(data, location);
 		newEntity.SetOwner(owner.GamePlayerData.ID);
 
 		if(UnitSpawnedEvent != null)
 		{
-			UnitSpawnedEvent(newUnit, tile);
+			UnitSpawnedEvent(data, tile);
+		}
+
+		return newEntity;
+	}
+
+	public GameEntityBuilding SpawnNewBuilding(BuildingDefinition buildingToSpawn, Point location, GamePlayer owner)
+	{
+		BuildingDataObject newBuilding = BuildingDefinitionObject.Instantiate(buildingToSpawn);
+		BuildingData data = newBuilding.GetData();
+		GameTile tile = GetTile(location);
+
+		tile.AddEntity(data);
+
+		GameEntityBuilding newEntity = tile.SpawnEntity(data);
+		newEntity.Initialize(data, location);
+		newEntity.SetOwner(owner.GamePlayerData.ID);
+
+		if (BuildingSpawnedEvent != null)
+		{
+			BuildingSpawnedEvent(data, tile);
 		}
 
 		return newEntity;
@@ -54,12 +79,12 @@ public class GameMap : MonoBehaviour
 			UnitDestroyedEvent(unitToDestroy, tile);
 		}
 
-		Destroy(unitToDestroy);
+		//Destroy(unitToDestroy);
 	}
 
 	public GameTile GetTile(Point location)
 	{
-		return GetTile(location.x, location.y);
+		return GetTile(location.X, location.Y);
 	}
 
 	public GameTile GetTile(int x, int y)
@@ -119,7 +144,7 @@ public class GameMap : MonoBehaviour
 		foreach (GameTile tile in tiles)
 		{
 			NesScripts.Controls.PathFind.Grid grid = new NesScripts.Controls.PathFind.Grid(tilesMap);
-			Point from = new Point(startPoint.x, startPoint.y);
+			Point from = new Point(startPoint.X, startPoint.Y);
 			Point to = new Point(tile.TileData.X, tile.TileData.Y);
 			List<Point> path = Pathfinding.FindPath(grid, from, to, Pathfinding.DistanceType.Manhattan);
 
@@ -140,15 +165,31 @@ public class GameMap : MonoBehaviour
 		}
 	}
 
-	public GameEntity GetEntity(GameEntityData data)
+	public GameEntityBuilding GetEntity(BuildingData data)
 	{
-		GameEntity entity = null;
+		GameEntityBuilding entity = null;
 
 		foreach (GameTile tile in activeTiles)
 		{
-			if(tile.TileData.Entities.Contains(data))
+			if(tile.TileData.BuildingEntities.Contains(data))
 			{
-				entity = tile.SpawnedEntities.First(x => x.Data == data);
+				entity = tile.SpawnedBuildings.First(x => x.Data == data);
+				break;
+			}
+		}
+
+		return entity;
+	}
+
+	public GameEntityUnit GetEntity(UnitData data)
+	{
+		GameEntityUnit entity = null;
+
+		foreach (GameTile tile in activeTiles)
+		{
+			if (tile.TileData.UnitEntities.Contains(data))
+			{
+				entity = tile.SpawnedUnits.First(x => x.Data == data);
 				break;
 			}
 		}
@@ -162,7 +203,7 @@ public class GameMap : MonoBehaviour
 
 		foreach (GameTile tile in activeTiles)
 		{
-			foreach (GameEntity e in tile.SpawnedEntities)
+			foreach (GameEntity e in tile.SpawnedUnits)
 			{
 				if (e.Data.Owner == playerId && e.Data.Definition.EntityType == GameEntityType.Unit)
 				{
@@ -180,7 +221,7 @@ public class GameMap : MonoBehaviour
 
 		foreach (GameTile tile in activeTiles)
 		{
-			foreach (GameEntity e in tile.SpawnedEntities)
+			foreach (GameEntity e in tile.SpawnedUnits)
 			{
 				if (e.Data.Owner == playerId && e.Data.Definition.EntityType == GameEntityType.Building)
 				{
@@ -198,7 +239,14 @@ public class GameMap : MonoBehaviour
 
 		foreach (GameTile tile in activeTiles)
 		{
-			foreach (GameEntity e in tile.SpawnedEntities)
+			foreach (GameEntity e in tile.SpawnedUnits)
+			{
+				if (e.Data.Owner == playerId)
+				{
+					gameEntities.Add(e);
+				}
+			}
+			foreach (GameEntity e in tile.SpawnedBuildings)
 			{
 				if (e.Data.Owner == playerId)
 				{
@@ -218,13 +266,13 @@ public class GameMap : MonoBehaviour
 			{
 				TileData tile = activeTiles[x, y].TileData;
 
-				if (tile.Entities != null && tile.Entities.Length > 0)
+				if (tile.BuildingEntities != null && tile.BuildingEntities.Length > 0)
 				{
 					try
 					{
-						foreach (BuildingData buildingData in tile.Entities)
+						foreach (BuildingData buildingData in tile.BuildingEntities)
 						{
-							if (buildingData.Owner == playerId && BuildingDefinition.ShopBuildings.Contains(buildingData.TypedDefinition.BuildingType))
+							if (buildingData.Owner == playerId && BuildingDefinitionObject.ShopBuildings.Contains(buildingData.Definition.BuildingType))
 							{
 								return activeTiles[x, y];
 							}
@@ -241,10 +289,13 @@ public class GameMap : MonoBehaviour
 		return null;
 	}
 
-	public void MoveEntity(GameEntityData entity, List<Point> path)
+	/// <summary>
+	/// Move the given entity along the given path to the final point in the path. This function does NOT modify any unit data other than position, including Movement points.
+	/// </summary>
+	public void MoveEntity(UnitData entity, List<Point> path)
 	{
-		GameTile startTile = activeTiles[(int)entity.Location.x, (int)entity.Location.y];
-		GameTile finalTile = activeTiles[path.Last().x, path.Last().y];
+		GameTile startTile = activeTiles[entity.Location.X, entity.Location.Y];
+		GameTile finalTile = activeTiles[path.Last().X, path.Last().Y];
 
 		startTile.RemoveEntity(entity);
 		finalTile.AddEntity(entity);
@@ -258,57 +309,59 @@ public class GameMap : MonoBehaviour
 
 	public void LoadMap(string mapToLoadPath, string mapName)
 	{
-		string fullMapPathOriginal = mapToLoadPath + mapName;
-		MapData activeMapData = Instantiate(Resources.Load<MapData>(fullMapPathOriginal));
-		mapData = activeMapData;
+		//string fullMapPathOriginal = mapToLoadPath + mapName;
+		//MapDataObject activeMapDataObject = Instantiate(Resources.Load<MapDataObject>(fullMapPathOriginal));
+		//mapData = activeMapDataObject.GetData();
 
-		List<PlayerData> activePlayers = new List<PlayerData>();
-		foreach (PlayerData playerData in activeMapData.MapPlayers)
-		{
-			string originalPath = mapToLoadPath + "PlayerData/" + playerData.name;
-			PlayerData activePlayerData = Instantiate(Resources.Load<PlayerData>(originalPath));
-			activePlayers.Add(activePlayerData);
-		}
-		activeMapData.MapPlayers = activePlayers.ToArray();
+		//List<PlayerData> activePlayers = new List<PlayerData>();
+		//foreach (PlayerData playerData in activeMapData.MapPlayers)
+		//{
+		//	string originalPath = mapToLoadPath + "PlayerData/" + playerData.name;
+		//	PlayerDataObject activePlayerData = Instantiate(Resources.Load<PlayerDataObject>(originalPath));
+		//	activePlayers.Add(activePlayerData.GetData());
+		//}
+		//activeMapData.MapPlayers = activePlayers.ToArray();
 
-		int xLength = activeMapData.MapTiles.Max(x => x.X) + 1;
-		int yLength = activeMapData.MapTiles.Max(x => x.Y) + 1;
-		activeTiles = new GameTile[xLength, yLength];
+		//int xLength = activeMapData.MapTiles.Max(x => x.X) + 1;
+		//int yLength = activeMapData.MapTiles.Max(x => x.Y) + 1;
+		//activeTiles = new GameTile[xLength, yLength];
 
-		GameObject root = new GameObject();
-		root.name = "root";
-		root.transform.parent = transform;
-		GameObject basicTile = Resources.Load<GameObject>("Prefabs/Game/Tile");
+		//GameObject root = new GameObject();
+		//root.name = "root";
+		//root.transform.parent = transform;
+		//GameObject basicTile = Resources.Load<GameObject>("Prefabs/Game/Tile");
+		//string originalPath = mapToLoadPath + "EntityData/";
+		//List<GameEntityDataObject> dataObjects = Resources.LoadAll<GameEntityDataObject>(originalPath).ToList();
 
-		foreach (TileData tileData in activeMapData.MapTiles)
-		{
-			string originalPath = mapToLoadPath + "TileData/tile" + tileData.X + tileData.Y;
-			TileData activeData = Instantiate(Resources.Load<TileData>(originalPath));
+		//foreach (TileData tileData in activeMapData.MapTiles)
+		//{
+		//	originalPath = mapToLoadPath + "TileData/tile" + tileData.X + tileData.Y;
+		//	TileDataObject activeData = Instantiate(Resources.Load<TileDataObject>(originalPath));
 
-			List<GameEntityData> activeEntities = new List<GameEntityData>();
-			foreach (GameEntityData entityData in activeData.Entities)
-			{
-				originalPath = mapToLoadPath + "EntityData/" + entityData.name;
-				GameEntityData activeEntityData = Instantiate(Resources.Load<GameEntityData>(originalPath));
-				activeEntities.Add(activeEntityData);
-			}
-			activeData.Entities = activeEntities.ToArray();
+		//	List<GameEntityData> activeEntities = new List<GameEntityData>();
+		//	foreach (GameEntityData entityData in activeData.Entities)
+		//	{
+		//		GameEntityDataObject activeEntityData = Instantiate(dataObjects.First(x => x.GetData() == entityData));
+		//		activeEntities.Add(activeEntityData.GetData());
+		//		dataObjects.Remove(activeEntityData);
+		//	}
+		//	activeData.Entities = activeEntities.ToArray();
 
-			GameObject newlyInstantiatedTile = Instantiate(basicTile, new Vector3(activeData.X * TileSize, 0, activeData.Y * TileSize), new Quaternion(), root.transform);
-			GameTile tile = newlyInstantiatedTile.GetComponent<GameTile>();
-			tile.Initialize(activeData);
+		//	GameObject newlyInstantiatedTile = Instantiate(basicTile, new Vector3(activeData.X * TileSize, 0, activeData.Y * TileSize), new Quaternion(), root.transform);
+		//	GameTile tile = newlyInstantiatedTile.GetComponent<GameTile>();
+		//	tile.Initialize(activeData);
 
-			if (activeData.Entities != null && activeData.Entities.Length > 0)
-			{
-				foreach (GameEntityData data in activeData.Entities)
-				{
-					tile.SpawnEntity(data);
-				}
-			}
+		//	if (activeData.Entities != null && activeData.Entities.Length > 0)
+		//	{
+		//		foreach (GameEntityData data in activeData.Entities)
+		//		{
+		//			tile.SpawnEntity(data);
+		//		}
+		//	}
 
-			newlyInstantiatedTile.name = string.Format("{0},{1}", activeData.X, activeData.Y);
-			activeTiles[activeData.X, activeData.Y] = tile;
-		}
+		//	newlyInstantiatedTile.name = string.Format("{0},{1}", activeData.X, activeData.Y);
+		//	activeTiles[activeData.X, activeData.Y] = tile;
+		//}
 	}
 
 	public static GameMap Instance

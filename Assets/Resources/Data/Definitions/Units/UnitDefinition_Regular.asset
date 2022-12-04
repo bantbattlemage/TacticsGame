@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff22e7237394f734383baf46619d96e2, type: 3}
   m_Name: UnitDefinition_Regular
   m_EditorClassIdentifier: 
+  <BaseHealth>k__BackingField: 10
   Prefab: {fileID: 5370306762599958970, guid: ae6e7ce394055564399aec990a1c6f11, type: 3}
-  UnitType: 1
-  BaseHealth: 5
-  BaseMovement: 2
-  BaseAttackRange: 1
-  BaseNumberOfAttacks: 1
-  BaseAttackDamage: 3
-  BasePurchaseCost: 1000
+  <UnitType>k__BackingField: 1
+  <BaseMovement>k__BackingField: 3
+  <BaseAttackRange>k__BackingField: 2
+  <BaseNumberOfAttacks>k__BackingField: 1
+  <BaseAttackDamage>k__BackingField: 3
+  <BasePurchaseCost>k__BackingField: 1000
