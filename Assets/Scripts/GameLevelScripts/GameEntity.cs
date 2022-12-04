@@ -56,18 +56,7 @@ public class GameEntity : MonoBehaviour
 	{
 		Data.State = state;
 
-		if (State == GameEntityState.ActiveNoActionsAvailable)
-		{
-			SetPlayerColor();
-		}
-		else if (State == GameEntityState.InactivePlayerControlled)
-		{
-			SetPlayerColor();
-		}
-		else
-		{
-			SetPlayerColor();
-		}
+		SetPlayerColor();
 	}
 
 	public virtual void SetPlayerColor()

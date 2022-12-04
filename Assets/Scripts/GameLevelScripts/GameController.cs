@@ -7,6 +7,8 @@ public class GameController : MonoBehaviour
 {
 	public StartMenu Menu;
 
+	public string ServerUrl { get { return "https://localhost:5001/api/"; } }
+
 	[HideInInspector]
 	public GameMatch CurrentGameMatch;
 
@@ -26,6 +28,11 @@ public class GameController : MonoBehaviour
 	private void Awake()
 	{
 		DontDestroyOnLoad(gameObject);
+	}
+
+	private void Start()
+	{
+		PulseCommunicator.Instance.Initialize();
 	}
 
 	public GameMatch StartMatch(int numberOfPlayers)
