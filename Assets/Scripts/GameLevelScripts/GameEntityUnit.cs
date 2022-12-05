@@ -2,7 +2,26 @@ using TacticGameData;
 
 public class GameEntityUnit : GameEntity
 {
-	public new UnitData Data { get; set; }
+	public new UnitData Data
+	{
+		get
+		{
+			return _data;
+		}
+		set
+		{
+			base.Data = new GameEntityData<GameDefinition>();
+			base.Data.Definition = value.Definition;
+			base.Data.Owner = value.Owner;
+			base.Data.Location = value.Location;
+			base.Data.RemainingHealth = value.RemainingHealth;
+			base.Data.RemainingActions = value.RemainingActions;
+
+			_data = value;
+		}
+	}
+
+	private UnitData _data;
 
 	public void Initialize(UnitData data, Point location)
 	{

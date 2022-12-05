@@ -29,7 +29,7 @@ public class BuildingDefinitionObject : GameDefinitionObject, IBuildingDefinitio
 	public BuildingDataObject Instantiate()
 	{
 		BuildingDataObject newUnit = CreateInstance<BuildingDataObject>();
-		newUnit.Definition = GetData();
+		newUnit.Definition = ToData();
 		return newUnit;
 	}
 
@@ -39,8 +39,15 @@ public class BuildingDefinitionObject : GameDefinitionObject, IBuildingDefinitio
 		newUnit.Definition = definition;
 		return newUnit;
 	}
-	public new BuildingDefinition GetData()
+
+	public new BuildingDefinition ToData()
 	{
-		return new BuildingDefinition();
+		BuildingDefinition buildingDefinition = new BuildingDefinition();
+
+		buildingDefinition.BuildingType = BuildingType;
+		buildingDefinition.BaseBuyActions = BaseBuyActions;
+		buildingDefinition.BaseIncomeValue = BaseIncomeValue;
+
+		return buildingDefinition;
 	}
 }

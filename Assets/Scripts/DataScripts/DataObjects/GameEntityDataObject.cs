@@ -4,6 +4,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GameEntityData", menuName = "ScriptableObjects/GameEntityData", order = 1)]
 public class GameEntityDataObject : GameDataObject, IGameEntityData<GameDefinition>, IGameDataProvider<GameEntityData<GameDefinition>>
 {
+	public GameDefinitionObject DefinitionObject;
+
 	public GameDefinition Definition { get; set; }
 
 	[field: SerializeField]
@@ -28,6 +30,14 @@ public class GameEntityDataObject : GameDataObject, IGameEntityData<GameDefiniti
 		}
 	}
 
+	public GameEntityDataObject()
+	{
+		if (DefinitionObject != null && Definition == null)
+		{
+			Definition = DefinitionObject.ToData();
+		}
+	}
+
 	public override GameDataType OutputDataToString(out string info)
 	{
 		info = "";
@@ -35,7 +45,7 @@ public class GameEntityDataObject : GameDataObject, IGameEntityData<GameDefiniti
 		return DataType;
 	}
 
-	public virtual new GameEntityData<GameDefinition> GetData()
+	public virtual new GameEntityData<GameDefinition> ToData()
 	{
 		GameEntityData<GameDefinition> data = new GameEntityData<GameDefinition>();
 

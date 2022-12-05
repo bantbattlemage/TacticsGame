@@ -79,7 +79,7 @@ public class PlayerUI : MonoBehaviour
 				throw new Exception("invalid building type for shop!");
 		}
 
-		List<UnitDefinition> unitDefinitions = availableUnits.Select(x => x.GetData()).ToList();
+		List<UnitDefinition> unitDefinitions = availableUnits.Select(x => x.ToData()).ToList();
 
 		Shop.Initialize(onCompleteAction);
 		Shop.PopulateShop(unitDefinitions);

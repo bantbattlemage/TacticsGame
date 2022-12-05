@@ -12,7 +12,7 @@ public class GameDefinitionObject : GameDataObject, IGameDefinition, IGameDataPr
 
 	public virtual GameEntityType EntityType { get { return GameEntityType.UNASSIGNED; } }
 
-	public virtual new GameDefinition GetData()
+	public virtual new GameDefinition ToData()
 	{
 		return new GameDefinition();
 	}

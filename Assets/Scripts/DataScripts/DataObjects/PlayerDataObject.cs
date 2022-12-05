@@ -18,8 +18,38 @@ public class PlayerDataObject : GameDataObject, IPlayerData
 
 	public override GameDataType DataType => GameDataType.Player;
 
-	public new PlayerData GetData()
+	public PlayerDataObject Instantiate()
 	{
-		return new PlayerData();
+		PlayerDataObject newPlayer = CreateInstance<PlayerDataObject>();
+		newPlayer.ID = ID;
+		newPlayer.name= Name;
+		newPlayer.Money= Money;
+		newPlayer.State = State;
+
+		return newPlayer;
+	}
+
+	public static PlayerDataObject Instantiate(PlayerData playerData)
+	{
+		PlayerDataObject newPlayer = CreateInstance<PlayerDataObject>();
+
+		newPlayer.ID = playerData.ID;
+		newPlayer.name = playerData.Name;
+		newPlayer.Money = playerData.Money;
+		newPlayer.State = playerData.State;
+
+		return newPlayer;
+	}
+
+	public new PlayerData ToData()
+	{
+		PlayerData playerData= new PlayerData();
+
+		playerData.ID = ID;
+		playerData.Name = Name;
+		playerData.Money = Money;
+		playerData.State = State;
+
+		return playerData;
 	}
 }

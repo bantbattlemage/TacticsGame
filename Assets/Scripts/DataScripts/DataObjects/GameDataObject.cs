@@ -15,7 +15,7 @@ public class GameDataObject : ScriptableObject, IGameData, IGameDataProvider<Gam
 
 	public int Sender { get; set; }
 
-	public virtual GameData GetData()
+	public virtual GameData ToData()
 	{
 		GameData data = new GameData();
 

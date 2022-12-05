@@ -59,27 +59,48 @@ public class GameTile : MonoBehaviour
 		DisableHilightForMovement();
 	}
 
-	public void AddEntity(BuildingData entityToAdd)
+	public void AddEntity(BuildingData entityToAdd, bool spawn = false)
 	{
+		if(TileData.BuildingEntities == null)
+		{
+			TileData.BuildingEntities = new BuildingData[0];
+		}
+
 		List<BuildingData> entities = TileData.BuildingEntities.ToList();
 		entities.Add(entityToAdd);
 		TileData.BuildingEntities = entities.ToArray();
+
+		if (spawn)
+		{
+			SpawnEntity(entityToAdd);
+		}
 	}
 
-	public void AddEntity(UnitData entityToAdd)
+	public void AddEntity(UnitData entityToAdd, bool spawn = false)
 	{
+		if (TileData.UnitEntities == null)
+		{
+			TileData.UnitEntities = new UnitData[0];
+		}
+
 		List<UnitData> entities = TileData.UnitEntities.ToList();
 		entities.Add(entityToAdd);
 		TileData.UnitEntities = entities.ToArray();
+
+		if (spawn)
+		{
+			SpawnEntity(entityToAdd);
+		}
 	}
 
 	public GameEntityBuilding SpawnEntity(BuildingData entityToSpawn)
 	{
 		if (TileData.BuildingEntities.Contains(entityToSpawn))
-		{			
+		{
 			GameObject prefab = null;
-			string path = "Data/Definitions/Building";
-			prefab = Resources.LoadAll<BuildingDefinitionObject>(path).First(x => x.GetData() == entityToSpawn.Definition).GameObject();
+			string path = "Data/Definitions/Buildings";
+			List<BuildingDefinitionObject> defines = Resources.LoadAll<BuildingDefinitionObject>(path).ToList();
+			prefab = defines.First(x => x.BuildingType == entityToSpawn.Definition.BuildingType).Prefab;
 
 			GameObject newEntity = Instantiate(prefab, transform);
 			GameEntityBuilding entity = newEntity.GetComponent<GameEntityBuilding>();
@@ -100,8 +121,9 @@ public class GameTile : MonoBehaviour
 		if (TileData.UnitEntities.Contains(entityToSpawn))
 		{
 			GameObject prefab = null;
-			string path = "Data/Definitions/Building";
-			prefab = Resources.LoadAll<UnitDefinitionObject>(path).First(x => x.GetData() == entityToSpawn.Definition).GameObject();
+			string path = "Data/Definitions/Units";
+			List<UnitDefinitionObject> defines = Resources.LoadAll<UnitDefinitionObject>(path).ToList();
+			prefab = defines.First(x => x.UnitType == entityToSpawn.Definition.UnitType).Prefab;
 
 			GameObject newEntity = Instantiate(prefab, transform);
 			GameEntityUnit entity = newEntity.GetComponent<GameEntityUnit>();

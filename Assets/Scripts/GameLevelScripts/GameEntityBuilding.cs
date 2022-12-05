@@ -5,7 +5,26 @@ using UnityEngine;
 
 public class GameEntityBuilding : GameEntity
 {
-	public new BuildingData Data;
+	public new BuildingData Data
+	{
+		get
+		{
+			return _data;
+		}
+		set
+		{
+			base.Data = new GameEntityData<GameDefinition>();
+			base.Data.Definition = value.Definition;
+			base.Data.Owner = value.Owner;
+			base.Data.Location = value.Location;
+			base.Data.RemainingHealth = value.RemainingHealth;
+			base.Data.RemainingActions = value.RemainingActions;
+
+			_data = value;
+		}
+	}
+
+	private BuildingData _data;
 
 	public override int RemainingActions
 	{	

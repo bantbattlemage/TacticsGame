@@ -326,6 +326,6 @@ MonoBehaviour:
   Name: testing
   SaveTiles: 0
   LoadMap: 0
-  MapToLoad: {fileID: 11400000, guid: e3aa24e2738adfd41a5c79340bfdaa40, type: 2}
+  MapToLoad: {fileID: 11400000, guid: d16adf626c8bcb242a2bfdfc97d9825a, type: 2}
   BasicTile: {fileID: 5261466178935394230, guid: 5645a14657122fb49964f1e7f4aa00c8, type: 3}
   TileSize: 10

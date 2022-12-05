@@ -56,8 +56,16 @@ public class TileDataObject : GameDataObject, ITileData
 		return DataType;
 	}
 
-	public new TileData GetData()
+	public new TileData ToData()
 	{
-		return new TileData();
+		TileData tileData = new TileData();
+
+		tileData.X = X;
+		tileData.Y = Y;
+		tileData.Type = Type;
+		tileData.UnitEntities = UnitEntities;
+		tileData.BuildingEntities = BuildingEntities;
+
+		return tileData;
 	}
 }

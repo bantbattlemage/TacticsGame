@@ -95,7 +95,8 @@ public class LevelEditorController : MonoBehaviour
 
 		AssetDatabase.SaveAssets();
 
-		newMapData.MapTiles = newTiles.Select(x=>x.GetData()).ToArray();
+		newMapData.TileDataObjects = newTiles.ToArray();
+		//newMapData.MapTiles = newTiles.Select(x=>x.ToData()).ToArray();
 		newMapData.MapPlayers = new PlayerData[Players];
 
 		for (int i = 0; i < Players; i++)
@@ -103,7 +104,7 @@ public class LevelEditorController : MonoBehaviour
 			PlayerDataObject newPlayer = ScriptableObject.CreateInstance<PlayerDataObject>();
 			newPlayer.ID = i;
 			newPlayer.Name = string.Format("Player {0}", i + 1);
-			newMapData.MapPlayers[i] = newPlayer.GetData();
+			newMapData.MapPlayers[i] = newPlayer.ToData();
 			AssetDatabase.CreateAsset(newPlayer, playerFolderPath + "/Player" + newPlayer.ID + ".asset");
 		}
 
@@ -121,8 +122,8 @@ public class LevelEditorController : MonoBehaviour
 		}
 		else
 		{
-			int xLength = MapToLoad.MapTiles.Max(x => x.X) + 1;
-			int yLength = MapToLoad.MapTiles.Max(x => x.Y) + 1;
+			int xLength = MapToLoad.TileDataObjects.Max(x => x.X) + 1;
+			int yLength = MapToLoad.TileDataObjects.Max(x => x.Y) + 1;
 			LoadedTiles = new GameObject[xLength, yLength];
 		}
 
@@ -142,27 +143,27 @@ public class LevelEditorController : MonoBehaviour
 				//	read existing map tile data
 				if (mapData != null)
 				{
-					TileData tileData = mapData.MapTiles.First(tile => tile.X == x && tile.Y == y);
+					TileData tileData = mapData.TileDataObjects.First(tile => tile.X == x && tile.Y == y).ToData();
 					newlyInstantiatedTile.GetComponent<GameTile>().TileData = tileData;
 
-					//if (tileData.UnitEntities != null && tileData.UnitEntities.Length > 0)
-					//{
-					//	foreach (UnitData data in tileData.UnitEntities)
-					//	{
-							
-					//		GameObject newEntity = Instantiate(data.Definition.Prefab, newlyInstantiatedTile.transform);
-					//		newEntity.GetComponent<GameEntityUnit>().Initialize(data, new Point(tileData.X, tileData.Y));
-					//	}
-					//}
-					//if (tileData.BuildingEntities != null && tileData.BuildingEntities.Length > 0)
-					//{
-					//	foreach (BuildingData data in tileData.BuildingEntities)
-					//	{
-					//		GameObject prefab = Resources.Load("Data/Definitions/Buildings/")
-					//		GameObject newEntity = Instantiate(data.Definition.Prefab, newlyInstantiatedTile.transform);
-					//		newEntity.GetComponent<GameEntityBuilding>().Initialize(data, new Point(tileData.X, tileData.Y));
-					//	}
-					//}
+					if (tileData.UnitEntities != null && tileData.UnitEntities.Length > 0)
+					{
+						foreach (UnitData data in tileData.UnitEntities)
+						{
+							GameObject prefab = Resources.Load("Prefabs/Units/" + data.Definition.UnitType.ToString()) as GameObject;
+							GameObject newEntity = Instantiate(prefab, newlyInstantiatedTile.transform);
+							newEntity.GetComponent<GameEntityUnit>().Initialize(data, new Point(tileData.X, tileData.Y));
+						}
+					}
+					if (tileData.BuildingEntities != null && tileData.BuildingEntities.Length > 0)
+					{
+						foreach (BuildingData data in tileData.BuildingEntities)
+						{
+							GameObject prefab = Resources.Load("Prefabs/Buildings/" + data.Definition.BuildingType.ToString()) as GameObject;
+							GameObject newEntity = Instantiate(prefab, newlyInstantiatedTile.transform);
+							newEntity.GetComponent<GameEntityBuilding>().Initialize(data, new Point(tileData.X, tileData.Y));
+						}
+					}
 
 					newlyInstantiatedTile.GetComponent<GameTile>().Initialize(tileData);
 				}
@@ -175,12 +176,60 @@ public class LevelEditorController : MonoBehaviour
 					tileData.UnitEntities = new UnitData[0];
 					tileData.BuildingEntities = new BuildingData[0];
 					tileData.Type = TerrainType.Field;
-					newlyInstantiatedTile.GetComponent<GameTile>().Initialize(tileData.GetData());
+					newlyInstantiatedTile.GetComponent<GameTile>().Initialize(tileData.ToData());
 				}
 
 				LoadedTiles[x, y] = newlyInstantiatedTile;
 			}
 		}
+
+		if (mapData != null)
+		{
+			List<BuildingDataObject> buildingData = LoadBuildings();
+
+			foreach (BuildingDataObject data in buildingData)
+			{
+				Debug.Log(data.Location.X + ", " + data.Location.Y);
+				LoadedTiles[data.Location.X, data.Location.Y].GetComponent<GameTile>().AddEntity(data.ToData(), true);
+			}
+
+			List<UnitDataObject> unitData = LoadUnits();
+
+			foreach (UnitDataObject data in unitData)
+			{
+				LoadedTiles[data.Location.X, data.Location.Y].GetComponent<GameTile>().AddEntity(data.ToData(), true);
+			}
+		}
+	}
+
+	private List<BuildingDataObject> LoadBuildings()
+	{
+		List<BuildingDataObject> loadedBuildings = new List<BuildingDataObject>();
+
+		BuildingDataObject[] entities = Resources.LoadAll<BuildingDataObject>("Data/MapData/" + MapToLoad.name + "/EntityData");
+
+		foreach (BuildingDataObject building in entities)
+		{
+			BuildingDataObject newBuilding = building.Instantiate();
+			loadedBuildings.Add(newBuilding);
+		}
+
+		return loadedBuildings;
+	}
+
+	private List<UnitDataObject> LoadUnits()
+	{
+		List<UnitDataObject> loadedUnits = new List<UnitDataObject>();
+
+		UnitDataObject[] entities = Resources.LoadAll<UnitDataObject>("Data/MapData/" + MapToLoad.name + "/EntityData");
+
+		foreach (UnitDataObject unit in entities)
+		{
+			UnitDataObject newUnit = unit.Instantiate();
+			loadedUnits.Add(newUnit);
+		}
+
+		return loadedUnits;
 	}
 
 	private void Delete()

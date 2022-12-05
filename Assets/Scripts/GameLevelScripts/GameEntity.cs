@@ -2,9 +2,9 @@ using System.Linq;
 using TacticGameData;
 using UnityEngine;
 
-public class GameEntity : MonoBehaviour
+public class GameEntity: MonoBehaviour
 {
-	public GameEntityData<GameDefinition> Data;
+	public virtual GameEntityData<GameDefinition> Data { get; set; }
 	public virtual int RemainingActions { get { return Data.RemainingActions; } }
 
 	public GameEntityState State
@@ -17,11 +17,6 @@ public class GameEntity : MonoBehaviour
 
 	public virtual void Initialize(Point location)
 	{
-		if(Data == null)
-		{
-			throw new System.Exception("Data type is not initialized!");
-		}
-
 		Data.Location = location;
 		SetPlayerColor();
 		CheckRemainingActions();
@@ -34,7 +29,7 @@ public class GameEntity : MonoBehaviour
 
 	public virtual void SetOwner(int playerID)
 	{
-		Data.Owner= playerID;
+		Data.Owner = playerID;
 		SetPlayerColor();
 	}
 
@@ -114,7 +109,7 @@ public class GameEntity : MonoBehaviour
 
 	public virtual void CheckRemainingActions()
 	{
-		if (RemainingActions == 0 && Data.Owner != -1)
+		if (Application.isPlaying && RemainingActions == 0 && Data.Owner != -1 && GameMatch.Instance.matchData.CurrentActivePlayer == Data.Owner)
 		{
 			if (State != GameEntityState.ActiveNoActionsAvailable)
 			{

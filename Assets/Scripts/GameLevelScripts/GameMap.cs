@@ -32,7 +32,7 @@ public class GameMap : MonoBehaviour
 	public GameEntityUnit SpawnNewUnit(UnitDefinition unitToSpawn, Point location, GamePlayer owner)
 	{
 		UnitDataObject newUnit = UnitDefinitionObject.Instantiate(unitToSpawn);
-		UnitData data = newUnit.GetData();
+		UnitData data = newUnit.ToData();
 		GameTile tile = GetTile(location);
 
 		tile.AddEntity(data);
@@ -52,7 +52,7 @@ public class GameMap : MonoBehaviour
 	public GameEntityBuilding SpawnNewBuilding(BuildingDefinition buildingToSpawn, Point location, GamePlayer owner)
 	{
 		BuildingDataObject newBuilding = BuildingDefinitionObject.Instantiate(buildingToSpawn);
-		BuildingData data = newBuilding.GetData();
+		BuildingData data = newBuilding.ToData();
 		GameTile tile = GetTile(location);
 
 		tile.AddEntity(data);
@@ -311,19 +311,21 @@ public class GameMap : MonoBehaviour
 	{
 		//string fullMapPathOriginal = mapToLoadPath + mapName;
 		//MapDataObject activeMapDataObject = Instantiate(Resources.Load<MapDataObject>(fullMapPathOriginal));
-		//mapData = activeMapDataObject.GetData();
+		//mapData = activeMapDataObject.ToData();
 
 		//List<PlayerData> activePlayers = new List<PlayerData>();
-		//foreach (PlayerData playerData in activeMapData.MapPlayers)
+		//foreach (PlayerData playerData in mapData.MapPlayers)
 		//{
-		//	string originalPath = mapToLoadPath + "PlayerData/" + playerData.name;
-		//	PlayerDataObject activePlayerData = Instantiate(Resources.Load<PlayerDataObject>(originalPath));
-		//	activePlayers.Add(activePlayerData.GetData());
+		//	//string originalPath = mapToLoadPath + "PlayerData/" + playerData.name;
+		//	//PlayerDataObject activePlayerData = Instantiate(Resources.Load<PlayerDataObject>(originalPath));
+		//	PlayerDataObject activePlayerData = PlayerDataObject.Instantiate(playerData);
+		//	activePlayers.Add(activePlayerData.ToData());
 		//}
-		//activeMapData.MapPlayers = activePlayers.ToArray();
 
-		//int xLength = activeMapData.MapTiles.Max(x => x.X) + 1;
-		//int yLength = activeMapData.MapTiles.Max(x => x.Y) + 1;
+		//mapData.MapPlayers = activePlayers.ToArray();
+
+		//int xLength = mapData.MapTiles.Max(x => x.X) + 1;
+		//int yLength = mapData.MapTiles.Max(x => x.Y) + 1;
 		//activeTiles = new GameTile[xLength, yLength];
 
 		//GameObject root = new GameObject();
@@ -333,7 +335,7 @@ public class GameMap : MonoBehaviour
 		//string originalPath = mapToLoadPath + "EntityData/";
 		//List<GameEntityDataObject> dataObjects = Resources.LoadAll<GameEntityDataObject>(originalPath).ToList();
 
-		//foreach (TileData tileData in activeMapData.MapTiles)
+		//foreach (TileData tileData in mapData.MapTiles)
 		//{
 		//	originalPath = mapToLoadPath + "TileData/tile" + tileData.X + tileData.Y;
 		//	TileDataObject activeData = Instantiate(Resources.Load<TileDataObject>(originalPath));
@@ -341,8 +343,8 @@ public class GameMap : MonoBehaviour
 		//	List<GameEntityData> activeEntities = new List<GameEntityData>();
 		//	foreach (GameEntityData entityData in activeData.Entities)
 		//	{
-		//		GameEntityDataObject activeEntityData = Instantiate(dataObjects.First(x => x.GetData() == entityData));
-		//		activeEntities.Add(activeEntityData.GetData());
+		//		GameEntityDataObject activeEntityData = Instantiate(dataObjects.First(x => x.ToData() == entityData));
+		//		activeEntities.Add(activeEntityData.ToData());
 		//		dataObjects.Remove(activeEntityData);
 		//	}
 		//	activeData.Entities = activeEntities.ToArray();

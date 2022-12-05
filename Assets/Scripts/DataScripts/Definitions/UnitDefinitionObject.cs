@@ -30,7 +30,7 @@ public class UnitDefinitionObject : GameDefinitionObject, IUnitDefinition
 	public UnitDataObject Instantiate()
 	{
 		UnitDataObject newUnit = CreateInstance<UnitDataObject>();
-		newUnit.Definition = GetData();
+		newUnit.Definition = ToData();
 		return newUnit;
 	}
 
@@ -41,8 +41,17 @@ public class UnitDefinitionObject : GameDefinitionObject, IUnitDefinition
 		return newUnit;
 	}
 
-	public new UnitDefinition GetData()
+	public new UnitDefinition ToData()
 	{
-		return new UnitDefinition();
+		UnitDefinition unitDefinition = new UnitDefinition();
+
+		unitDefinition.UnitType = UnitType;
+		unitDefinition.BaseMovement = BaseMovement;
+		unitDefinition.BaseAttackRange = BaseAttackRange;
+		unitDefinition.BaseAttackDamage = BaseAttackDamage;
+		unitDefinition.BaseNumberOfAttacks = BaseNumberOfAttacks;
+		unitDefinition.BasePurchaseCost = BasePurchaseCost;
+
+		return unitDefinition;
 	}
 }
