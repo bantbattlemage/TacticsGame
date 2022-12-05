@@ -189,7 +189,6 @@ public class LevelEditorController : MonoBehaviour
 
 			foreach (BuildingDataObject data in buildingData)
 			{
-				Debug.Log(data.Location.X + ", " + data.Location.Y);
 				LoadedTiles[data.Location.X, data.Location.Y].GetComponent<GameTile>().AddEntity(data.ToData(), true);
 			}
 

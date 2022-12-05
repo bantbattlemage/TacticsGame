@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88cca42de8359e744be61a321eb7601f, type: 3}
   m_Name: BuildingData
   m_EditorClassIdentifier: 
+  DefinitionObject: {fileID: 11400000, guid: c9070ba239e35654887e75353879da5d, type: 2}
   <Owner>k__BackingField: 0
   <Location>k__BackingField:
     X: 0
     Y: 0
   <RemainingHealth>k__BackingField: 0
   <State>k__BackingField: 0
-  DefinitionObject: {fileID: 0}
   <RemainingBuyActions>k__BackingField: 0
